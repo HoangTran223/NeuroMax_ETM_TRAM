@@ -81,8 +81,9 @@ if __name__ == "__main__":
                 cluster_distribution=cluster_distribution,
                 cluster_mean=cluster_mean,
                 cluster_label=cluster_label,
+                weight_loss_CTR=args.weight_CTR,
                 pretrained_WE=pretrainWE if args.use_pretrainWE else None)
-                
+
     model = model.to(args.device)
 
     # create a trainer
