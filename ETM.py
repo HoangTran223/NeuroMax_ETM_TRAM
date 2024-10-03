@@ -14,7 +14,7 @@ class ETM(nn.Module):
         Adji B. Dieng, Francisco J. R. Ruiz, David M. Blei.
     '''
     def __init__(self, vocab_size, embed_size=200, num_topics=50, num_groups=10, en_units=800, dropout=0., 
-                    cluster_distribution=None, cluster_mean=None, cluster_label=None, 
+                    cluster_distribution=None, cluster_mean=None, cluster_label=None, weight_loss_CTR = 1,
                     pretrained_WE=None, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, train_WE=False):
         super().__init__()
 
