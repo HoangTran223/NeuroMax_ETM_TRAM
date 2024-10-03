@@ -20,6 +20,8 @@ class BasicTrainer:
         self.lr_scheduler = lr_scheduler
         self.lr_step_size = lr_step_size
         self.log_interval = log_interval
+
+        # self.sam_name = sam_name
         # self.threshold = threshold
 
         # self.rho = rho 
@@ -41,12 +43,26 @@ class BasicTrainer:
 
     def make_sam_optimizer(self,):
         base_optimizer = torch.optim.SGD
+        # if sam_name == "FSAM":
+        #     optimizer = FSAM(
+        #         self.model.parameters(),
+        #         base_optimizer, device=self.device,
+        #         lr=self.learning_rate,
+        #         sigma=self.sigma, lmbda=self.lmbda
+        #         )
+        # elif sam_name == "TRAM":
+        #     optimizer = TRAM(
+        #             self.model.parameters(),
+        #             base_optimizer, device=self.device,
+        #             lr=self.learning_rate,
+        #             sigma=self.sigma, lmbda=self.lmbda
+        #             )
+                # elif sam_name == "TRAM":
         optimizer = TRAM(
-            self.model.parameters(),
-            base_optimizer, device=self.device,
-            lr=self.learning_rate,
-            sigma=self.sigma, lmbda=self.lmbda
-            )
+                self.model.parameters(),
+                base_optimizer, device=self.device,
+                lr=self.learning_rate,
+                sigma=self.sigma, lmbda=self.lmbda)
         return optimizer
 
     def make_lr_scheduler(self, optimizer):
@@ -84,14 +100,15 @@ class BasicTrainer:
 
             for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
                 *inputs, indices = batch
-                batch_data = inputs
-                # rst_dict = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
+                # batch_data = inputs
+                batch_data = batch
                 rst_dict = self.model(batch_data)
                 batch_loss = rst_dict['loss']
                 batch_loss.backward()
 
                 if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
                     # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                    # theta, _, a = self.model.get_theta(batch_data[0])
                     theta, _, a = self.model.get_theta(batch_data[0])
                     loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                     sam_optimizer.first_step(loss_ctr_,

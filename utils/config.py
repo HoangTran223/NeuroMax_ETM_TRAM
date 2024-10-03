@@ -45,7 +45,8 @@ def add_training_argument(parser):
                             currently support: step')
     parser.add_argument('--lr_step_size', type=int, default=125,
                         help='step size for learning rate scheduler')
-
+    
+    # parser.add_argument('--sam_name', type=str, default='FSAM', help='name_of_sam')
 
     # FSAM
     # parser.add_argument('--rho', type=float, default=0.05,
