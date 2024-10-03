@@ -2,7 +2,7 @@ from utils import config, log, miscellaneous, seed
 import os
 import numpy as np
 import basic_trainer
-# from NeuroMax.NeuroMax import NeuroMax
+from NeuroMax.NeuroMax import NeuroMax
 import evaluations
 import datasethandler
 import scipy
@@ -53,37 +53,40 @@ if __name__ == "__main__":
     # create a model
     pretrainWE = scipy.sparse.load_npz(os.path.join(
         DATA_DIR, args.dataset, "word_embeddings.npz")).toarray()
-     
-    # model = NeuroMax(vocab_size=dataset.vocab_size,
-    #                 num_topics=args.num_topics,
-    #                 num_groups=args.num_groups,
-    #                 dropout=args.dropout,
-    #                 cluster_distribution=cluster_distribution,
-    #                 cluster_mean=cluster_mean,
-    #                 cluster_label=cluster_label,
-    #                 pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-    #                 weight_loss_GR=args.weight_GR,
-    #                 weight_loss_ECR=args.weight_ECR,
-    #                 alpha_ECR=args.alpha_ECR,
-    #                 alpha_GR=args.alpha_GR,
-    #                 weight_loss_CTR=args.weight_CTR,
-    #                 weight_loss_InfoNCE=args.weight_InfoNCE,
-    #                 weight_loss_CL=args.weight_CL,
-    #                 beta_temp=args.beta_temp)
+    
+    if args.model == 'NeuroMax':
+        model = NeuroMax(vocab_size=dataset.vocab_size,
+                        num_topics=args.num_topics,
+                        num_groups=args.num_groups,
+                        dropout=args.dropout,
+                        cluster_distribution=cluster_distribution,
+                        cluster_mean=cluster_mean,
+                        cluster_label=cluster_label,
+                        pretrained_WE=pretrainWE if args.use_pretrainWE else None,
+                        weight_loss_GR=args.weight_GR,
+                        weight_loss_ECR=args.weight_ECR,
+                        alpha_ECR=args.alpha_ECR,
+                        alpha_GR=args.alpha_GR,
+                        weight_loss_CTR=args.weight_CTR,
+                        weight_loss_InfoNCE=args.weight_InfoNCE,
+                        weight_loss_CL=args.weight_CL,
+                        beta_temp=args.beta_temp)
 
-    # model.weight_loss_GR = args.weight_GR
-    # model.weight_loss_ECR = args.weight_ECR
+    elif args.model == 'ETM':
+        model = ETM(vocab_size=dataset.vocab_size, 
+                    num_topics=args.num_topics, 
+                    num_groups=args.num_groups, 
+                    dropout=args.dropout, 
+                    cluster_distribution=cluster_distribution,
+                    cluster_mean=cluster_mean,
+                    cluster_label=cluster_label,
+                    weight_loss_CTR=args.weight_CTR,
+                    pretrained_WE=pretrainWE if args.use_pretrainWE else None)
+    else:
+        print(f"Wrong model")
 
-    model = ETM(vocab_size=dataset.vocab_size, 
-                num_topics=args.num_topics, 
-                num_groups=args.num_groups, 
-                dropout=args.dropout, 
-                cluster_distribution=cluster_distribution,
-                cluster_mean=cluster_mean,
-                cluster_label=cluster_label,
-                weight_loss_CTR=args.weight_CTR,
-                pretrained_WE=pretrainWE if args.use_pretrainWE else None)
-
+    model.weight_loss_GR = args.weight_GR
+    model.weight_loss_ECR = args.weight_ECR
     model = model.to(args.device)
 
     # create a trainer
@@ -94,7 +97,9 @@ if __name__ == "__main__":
                                             lr_step_size=args.lr_step_size,
                                             device=args.device,
                                             sigma=args.sigma,
-                                            lmbda=args.lmbda
+                                            lmbda=args.lmbda,
+                                            sam_name = args.sam_name,
+                                            model_name = args.model_name
                                             )
 
 
@@ -130,9 +135,9 @@ if __name__ == "__main__":
         print(f'Purity: ', clustering_results['Purity'])
 
 
-    # TC_15_list, TC_15 = evaluations.topic_coherence.TC_on_wikipedia(
-    #     os.path.join(current_run_dir, 'top_words_15.txt'))
-    # print(f"TC_15: {TC_15:.5f}")
+    TC_15_list, TC_15 = evaluations.topic_coherence.TC_on_wikipedia(
+        os.path.join(current_run_dir, 'top_words_15.txt'))
+    print(f"TC_15: {TC_15:.5f}")
 
     filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_CTR{args.weight_CTR}.txt"
     filename = filename.replace(' ', '_')
@@ -145,7 +150,7 @@ if __name__ == "__main__":
             f.write("NMI: N/A\n")
             f.write("Purity: N/A\n")
         f.write(f"TD_15: {TD_15:.5f}\n")
-        #f.write(f"TC_15: {TC_15:.5f}\n")
+        f.write(f"TC_15: {TC_15:.5f}\n")
 
     print(f"Done in {filepath}")
 

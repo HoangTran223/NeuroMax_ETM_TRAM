@@ -19,18 +19,23 @@ def add_model_argument(parser):
     parser.add_argument('--use_pretrainWE', action='store_true',
                         default=False, help='Enable use_pretrainWE mode')
     parser.add_argument('--weight_CTR', type=float, default=100.)
-    # parser.add_argument('--weight_ECR', type=float, default=40.)
-    # parser.add_argument('--weight_GR', type=float, default=1.)
-    # parser.add_argument('--alpha_ECR', type=float, default=20.)
-    # parser.add_argument('--alpha_GR', type=float, default=5.)
-    # parser.add_argument('--weight_CTR', type=float, default=100.)
-    # parser.add_argument('--weight_InfoNCE', type=float, default=50.)
-    # parser.add_argument('--weight_CL', type=float, default=2.0)
-    # parser.add_argument('--beta_temp', type=float, default=0.2)
-    # parser.add_argument('--threshold', type=float, default=10)
+    parser.add_argument('--weight_ECR', type=float, default=40.)
+    parser.add_argument('--weight_GR', type=float, default=1.)
+    parser.add_argument('--alpha_ECR', type=float, default=20.)
+    parser.add_argument('--alpha_GR', type=float, default=5.)
+    parser.add_argument('--weight_CTR', type=float, default=100.)
+    parser.add_argument('--weight_InfoNCE', type=float, default=50.)
+    parser.add_argument('--weight_CL', type=float, default=2.0)
+    parser.add_argument('--beta_temp', type=float, default=0.2)
+    parser.add_argument('--threshold', type=float, default=10)
+
+    
 
 
 def add_training_argument(parser):
+    parser.add_argument('--sam_name', type=str, default='Name', help='name_of_sam')
+    parser.add_argument('--model_name', type=str, default='Name', help='name_of_model')
+
     parser.add_argument('--epochs', type=int, default=500,
                         help='number of epochs to train the model')
     parser.add_argument('--batch_size', type=int, default=200,
@@ -45,8 +50,6 @@ def add_training_argument(parser):
                             currently support: step')
     parser.add_argument('--lr_step_size', type=int, default=125,
                         help='step size for learning rate scheduler')
-    
-    # parser.add_argument('--sam_name', type=str, default='FSAM', help='name_of_sam')
 
     # FSAM
     # parser.add_argument('--rho', type=float, default=0.05,

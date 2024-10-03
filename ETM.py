@@ -142,7 +142,7 @@ class ETM(nn.Module):
             loss = loss.mean()
 
         return loss
-
+        
 
     def get_loss_CTR(self, theta, indices):
         cd_batch = self.cluster_distribution[indices]  
