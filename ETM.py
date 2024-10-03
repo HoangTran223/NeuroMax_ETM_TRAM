@@ -2,7 +2,7 @@ import numpy as np
 import torch_kmeans
 import torch
 import torch.nn as nn
-from .CTR import CTR
+from NeuroMax.CTR import CTR
 import torch.nn.functional as F
 import logging
 import sentence_transformers
