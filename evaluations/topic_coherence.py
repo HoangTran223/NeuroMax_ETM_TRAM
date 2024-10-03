@@ -35,22 +35,10 @@ def TC_on_wikipedia(top_word_path, cv_type='C_V'):
         f"java -jar {os.path.join(jar_dir, 'pametto.jar')} {os.path.join(wiki_dir, 'wikipedia', 'wikipedia_bd')} {cv_type} {top_word_path} > tmp{random_number}.txt")
     cv_score = []
 
-
-    # with open(f"tmp{random_number}.txt", "r") as f:
-    #     for line in f.readlines():
-    #         if not line.startswith("202"):
-    #             cv_score.append(float(line.strip().split()[1]))
-
     with open(f"tmp{random_number}.txt", "r") as f:
         for line in f.readlines():
-            print(f"Line: {line.strip()}")  # In ra nội dung mỗi dòng
             if not line.startswith("202"):
-                try:
-                    value = float(line.strip().split()[1])
-                    cv_score.append(value)
-                except ValueError as e:
-                    print(f"Could not convert line to float: {line.strip()} - Error: {e}")
-
-
+                cv_score.append(float(line.strip().split()[1]))
+                
     os.remove(f"tmp{random_number}.txt")
     return cv_score, sum(cv_score) / len(cv_score)
