@@ -99,7 +99,8 @@ if __name__ == "__main__":
                                             sigma=args.sigma,
                                             lmbda=args.lmbda,
                                             sam_name = args.sam_name,
-                                            model_name = args.model_name
+                                            model_name = args.model,
+                                            threshold=args.threshold
                                             )
 
 

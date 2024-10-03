@@ -33,8 +33,6 @@ def add_model_argument(parser):
 
 def add_training_argument(parser):
     parser.add_argument('--sam_name', type=str, default='Name', help='name_of_sam')
-    parser.add_argument('--model_name', type=str, default='Name', help='name_of_model')
-
     parser.add_argument('--epochs', type=int, default=500,
                         help='number of epochs to train the model')
     parser.add_argument('--batch_size', type=int, default=200,
