@@ -71,6 +71,8 @@ if __name__ == "__main__":
                         weight_loss_InfoNCE=args.weight_InfoNCE,
                         weight_loss_CL=args.weight_CL,
                         beta_temp=args.beta_temp)
+        model.weight_loss_GR = args.weight_GR
+        model.weight_loss_ECR = args.weight_ECR
 
     elif args.model == 'ETM':
         model = ETM(vocab_size=dataset.vocab_size, 
@@ -85,8 +87,7 @@ if __name__ == "__main__":
     else:
         print(f"Wrong model")
 
-    model.weight_loss_GR = args.weight_GR
-    model.weight_loss_ECR = args.weight_ECR
+
     model = model.to(args.device)
 
     # create a trainer
