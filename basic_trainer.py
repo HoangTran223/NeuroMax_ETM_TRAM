@@ -44,7 +44,7 @@ class BasicTrainer:
         optimizer = TRAM(
             self.model.parameters(),
             base_optimizer, device=self.device,
-            lr=self.learning_rate, rho=self.rho,
+            lr=self.learning_rate,
             sigma=self.sigma, lmbda=self.lmbda
             )
         return optimizer
