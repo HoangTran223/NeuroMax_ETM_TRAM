@@ -1,9 +1,11 @@
-
-
+import numpy as np
+import torch_kmeans
 import torch
 import torch.nn as nn
+from .CTR import CTR
 import torch.nn.functional as F
-
+import logging
+import sentence_transformers
 
 class ETM(nn.Module):
     '''
@@ -11,7 +13,9 @@ class ETM(nn.Module):
 
         Adji B. Dieng, Francisco J. R. Ruiz, David M. Blei.
     '''
-    def __init__(self, vocab_size, embed_size=200, num_topics=50, en_units=800, dropout=0., pretrained_WE=None, train_WE=False):
+    def __init__(self, vocab_size, embed_size=200, num_topics=50, num_groups=10, en_units=800, dropout=0., 
+                    cluster_distribution=None, cluster_mean=None, cluster_label=None, 
+                    pretrained_WE=None, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, train_WE=False):
         super().__init__()
 
         if pretrained_WE is not None:
@@ -31,8 +35,38 @@ class ETM(nn.Module):
             nn.Dropout(dropout)
         )
 
+        # # Thêm
+        self.weight_loss_CTR = weight_loss_CTR
+        self.num_topics = num_topics
+        self.num_groups = num_groups
+
+        self.fc11 = nn.Linear(vocab_size, en_units)
+        self.fc12 = nn.Linear(en_units, en_units)
+        self.fc1_dropout = nn.Dropout(dropout)
+        
+
+        self.mean_bn = nn.BatchNorm1d(num_topics)
+        self.mean_bn.weight.requires_grad = False
+        self.logvar_bn = nn.BatchNorm1d(num_topics)
+        self.logvar_bn.weight.requires_grad = False
+
+        # Add CTR
+        self.cluster_mean = nn.Parameter(torch.from_numpy(cluster_mean).float(), requires_grad=False)
+        self.cluster_distribution = nn.Parameter(torch.from_numpy(cluster_distribution).float(), requires_grad=False)
+        self.cluster_label = cluster_label
+        if not isinstance(self.cluster_label, torch.Tensor):
+            self.cluster_label = torch.tensor(self.cluster_label, dtype=torch.long, device='cuda')
+        else:
+            self.cluster_label = self.cluster_label.to(device='cuda', dtype=torch.long)
+        
+        self.map_t2c = nn.Linear(self.word_embeddings.shape[1], self.cluster_mean.shape[1], bias=False)
+        self.CTR = CTR(weight_loss_CTR, sinkhorn_alpha, sinkhorn_max_iter)
+        # #
+
+
         self.fc21 = nn.Linear(en_units, num_topics)
         self.fc22 = nn.Linear(en_units, num_topics)
+
 
     def reparameterize(self, mu, logvar):
         if self.training:
@@ -45,6 +79,31 @@ class ETM(nn.Module):
     def encode(self, x):
         e1 = self.encoder1(x)
         return self.fc21(e1), self.fc22(e1)
+    
+
+    # # Thêm
+    # def get_representation(self, input):
+    #     e1 = F.softplus(self.fc11(input))
+    #     e1 = F.softplus(self.fc12(e1))
+    #     e1 = self.fc1_dropout(e1)
+    #     mu = self.mean_bn(self.fc21(e1))
+    #     logvar = self.logvar_bn(self.fc22(e1))
+    #     z = self.reparameterize(mu, logvar)
+    #     theta = F.softmax(z, dim=1)
+    #     return theta, mu, logvar
+
+    # def encode1(self, input):
+    #     theta, mu, logvar = self.get_representation(input)
+    #     loss_KL = self.compute_loss_KL(mu, logvar)
+    #     return theta, loss_KL
+
+    def pairwise_euclidean_distance(self, x, y):
+        cost = torch.sum(x ** 2, axis=1, keepdim=True) + \
+            torch.sum(y ** 2, dim=1) - 2 * torch.matmul(x, y.t())
+        return cost
+    # #
+
+
 
     def get_theta(self, x):
         # Warn: normalize the input if use Relu.
@@ -83,3 +142,10 @@ class ETM(nn.Module):
             loss = loss.mean()
 
         return loss
+
+
+    def get_loss_CTR(self, theta, indices):
+        cd_batch = self.cluster_distribution[indices]  
+        cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
+        loss_CTR = self.weight_loss_CTR * self.CTR(theta, cd_batch, cost)  
+        return loss_CTR

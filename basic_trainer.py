@@ -7,11 +7,12 @@ from utils import static_utils
 import logging
 import os
 import scipy
-# from SAM_function.TRAM import TRAM
-from SAM_function.FSAM import FSAM
+from SAM_function.TRAM import TRAM
+# from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
-    def __init__(self, model, epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, rho=0.05, sigma=1, lmbda=0.9, device='cuda', acc_step=8, log_interval=5):
+    def __init__(self, model, epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
+                sigma=1, lmbda=0.9, device='cuda', acc_step=8, log_interval=5):
         self.model = model
         self.epochs = epochs
         self.learning_rate = learning_rate
@@ -21,7 +22,7 @@ class BasicTrainer:
         self.log_interval = log_interval
         # self.threshold = threshold
 
-        self.rho = rho 
+        # self.rho = rho 
         self.device = device
         self.sigma = sigma
         self.lmbda = lmbda
@@ -40,7 +41,7 @@ class BasicTrainer:
 
     def make_sam_optimizer(self,):
         base_optimizer = torch.optim.SGD
-        optimizer = FSAM(
+        optimizer = TRAM(
             self.model.parameters(),
             base_optimizer, device=self.device,
             lr=self.learning_rate, rho=self.rho,
@@ -78,17 +79,22 @@ class BasicTrainer:
         for epoch in tqdm(range(1, self.epochs + 1)):
             self.model.train()
             loss_rst_dict = defaultdict(float)
-            # if epoch > self.threshold: is_CTR = True
+            # if epoch > self.threshold: is_CTR = True      
             # else: is_CTR = False
 
-            for batch_idx, batch_data in enumerate(dataset_handler.train_dataloader): 
+            for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
+                *inputs, indices = batch
+                batch_data = inputs
+                # rst_dict = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
                 rst_dict = self.model(batch_data)
                 batch_loss = rst_dict['loss']
                 batch_loss.backward()
-                
-                if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
 
-                    sam_optimizer.first_step(zero_grad=True)
+                if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
+                    theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                    loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                    sam_optimizer.first_step(loss_ctr_,
+                                            zero_grad=True)
 
                     # rst_dict_adv = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
                     rst_dict_adv = self.model(batch_data)
@@ -100,7 +106,6 @@ class BasicTrainer:
                 else:
                     adam_optimizer.step()
                     adam_optimizer.zero_grad()
-
 
                 for key in rst_dict:
                     try:

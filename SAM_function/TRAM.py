@@ -27,15 +27,7 @@ class KLDivergence:
         return self.klfn(x, y) / x.size(0)
 
 
-    # logits = outputs.get("logits")
-    # target_logits = self.parameter_target.forward(self.model, inputs, noise_gradient=False).get("logits")
-    # logit_noise_divergence = self.logit_distance.get_divergence(target_logits, logits)
-    
-    # logit_noise_divergence *= self.logit_scale # Scaling parameter which may be needed for CLM
-    # self.optimizer.first_step(logit_noise_divergence, zero_grad=True)
-
-
-class TRAM(torch.optim.optimizer):
+class TRAM(torch.optim.Optimizer):
 
     def __init__(self, params, base_optimizer, device, adaptive=False, lr=0.002, sigma=1, lmbda=0.9):
         defaults = dict(adaptive=adaptive, lr=lr)
@@ -49,8 +41,6 @@ class TRAM(torch.optim.optimizer):
         self.sigma = sigma
         self.lmbda = lmbda
 
-        self.kl_divergence = KLDivergence(kl_type="forward")
-
 
     def _grad_norm(self):
         norm = torch.norm(
@@ -61,7 +51,7 @@ class TRAM(torch.optim.optimizer):
         return norm
 
     @torch.no_grad()
-    def first_step(self, zero_grad=False, device='cuda'):
+    def first_step(self, loss_CTR, zero_grad=False, device='cuda'):
 
         for group in self.param_groups:
             for p in group["params"]:
@@ -79,8 +69,7 @@ class TRAM(torch.optim.optimizer):
 
 
         grad_norm = self._grad_norm()
-        logit_divergence = self.kl_divergence.get_divergence(logits, target_logits)
-        scale = logit_divergence / (grad_norm + 1e-12)
+        scale = loss_CTR / (grad_norm + 1e-12)
 
         for group in self.param_groups: 
             for p in group["params"]:
@@ -121,3 +110,6 @@ class TRAM(torch.optim.optimizer):
     def load_state_dict(self, state_dict):
         super().load_state_dict(state_dict)
         self.base_optimizer.param_groups = self.param_groups
+
+
+

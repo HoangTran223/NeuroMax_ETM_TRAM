@@ -18,6 +18,7 @@ def add_model_argument(parser):
     parser.add_argument('--dropout', type=float, default=0.2)
     parser.add_argument('--use_pretrainWE', action='store_true',
                         default=False, help='Enable use_pretrainWE mode')
+    parser.add_argument('--weight_CTR', type=float, default=100.)
     # parser.add_argument('--weight_ECR', type=float, default=40.)
     # parser.add_argument('--weight_GR', type=float, default=1.)
     # parser.add_argument('--alpha_ECR', type=float, default=20.)
@@ -47,8 +48,8 @@ def add_training_argument(parser):
 
 
     # FSAM
-    parser.add_argument('--rho', type=float, default=0.05,
-                        help='rho')
+    # parser.add_argument('--rho', type=float, default=0.05,
+    #                     help='rho')
     parser.add_argument('--sigma', type=float, default=1,
                         help='sigma') 
     parser.add_argument('--lmbda', type=float, default=0.9,
