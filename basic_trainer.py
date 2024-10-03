@@ -91,7 +91,8 @@ class BasicTrainer:
                 batch_loss.backward()
 
                 if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
-                    theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                    # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                    theta, _, a = self.model.get_theta(batch_data[0])
                     loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                     sam_optimizer.first_step(loss_ctr_,
                                             zero_grad=True)
