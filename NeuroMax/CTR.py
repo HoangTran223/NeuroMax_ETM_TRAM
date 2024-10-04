@@ -56,6 +56,4 @@ class CTR(nn.Module):
 
         # Compute the loss
         loss_CTR = torch.mean(torch.sum(transp * M, dim=(1, 2)))  # Scalar
-        loss_CTR *= self.weight_loss_CTR
-
         return loss_CTR
