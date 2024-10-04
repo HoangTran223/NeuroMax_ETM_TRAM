@@ -15,7 +15,7 @@ class NeuroMax(nn.Module):
                  cluster_distribution=None, cluster_mean=None, cluster_label=None,
                  pretrained_WE=None, embed_size=200, beta_temp=0.2,
                  weight_loss_ECR=250.0, weight_loss_GR=250.0,
-                 alpha_GR=20.0, alpha_ECR=20.0, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, weight_loss_CTR=100.0,
+                 alpha_GR=20.0, alpha_ECR=20.0, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, weight_CTR=100.0,
                  weight_loss_InfoNCE=10.0, weight_loss_CL=50.0):
         super().__init__()
 
@@ -63,7 +63,7 @@ class NeuroMax(nn.Module):
             self.cluster_label = self.cluster_label.to(device='cuda', dtype=torch.long)
         
         self.map_t2c = nn.Linear(self.word_embeddings.shape[1], self.cluster_mean.shape[1], bias=False)
-        self.CTR = CTR(weight_loss_CTR, sinkhorn_alpha, sinkhorn_max_iter)
+        self.CTR = CTR(weight_CTR, sinkhorn_alpha, sinkhorn_max_iter)
         #
         self.topic_embeddings = torch.empty(
             (num_topics, self.word_embeddings.shape[1]))
@@ -204,7 +204,7 @@ class NeuroMax(nn.Module):
         theta, _ = self.encode(bow)
         cd_batch = self.cluster_distribution[indices]  
         cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
-        loss_CTR = self.weight_loss_CTR * self.CTR(theta, cd_batch, cost)  
+        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
         return loss_CTR
 
     """def create_pairs(self, batch_data, indices):

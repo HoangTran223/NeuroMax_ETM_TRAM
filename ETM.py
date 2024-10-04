@@ -14,7 +14,7 @@ class ETM(nn.Module):
         Adji B. Dieng, Francisco J. R. Ruiz, David M. Blei.
     '''
     def __init__(self, vocab_size, embed_size=200, num_topics=50, num_groups=10, en_units=800, dropout=0., 
-                    cluster_distribution=None, cluster_mean=None, cluster_label=None, weight_loss_CTR = 1,
+                    cluster_distribution=None, cluster_mean=None, cluster_label=None, weight_CTR = 1,
                     pretrained_WE=None, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, train_WE=False):
         super().__init__()
 
@@ -35,8 +35,8 @@ class ETM(nn.Module):
             nn.Dropout(dropout)
         )
 
-        # # Thêm
-        self.weight_loss_CTR = weight_loss_CTR
+        # # Thêm 
+        self.weight_CTR = weight_CTR
         self.num_topics = num_topics
         self.num_groups = num_groups
 
@@ -60,7 +60,7 @@ class ETM(nn.Module):
             self.cluster_label = self.cluster_label.to(device='cuda', dtype=torch.long)
         
         self.map_t2c = nn.Linear(self.word_embeddings.shape[1], self.cluster_mean.shape[1], bias=False)
-        self.CTR = CTR(weight_loss_CTR, sinkhorn_alpha, sinkhorn_max_iter)
+        self.CTR = CTR(weight_CTR, sinkhorn_alpha, sinkhorn_max_iter)
         # #
 
 
@@ -147,5 +147,5 @@ class ETM(nn.Module):
     def get_loss_CTR(self, theta, indices):
         cd_batch = self.cluster_distribution[indices]  
         cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
-        loss_CTR = self.weight_loss_CTR * self.CTR(theta, cd_batch, cost)  
+        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
         return loss_CTR

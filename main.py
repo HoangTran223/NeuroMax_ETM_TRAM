@@ -67,7 +67,7 @@ if __name__ == "__main__":
                         weight_loss_ECR=args.weight_ECR,
                         alpha_ECR=args.alpha_ECR,
                         alpha_GR=args.alpha_GR,
-                        weight_loss_CTR=args.weight_CTR,
+                        weight_CTR=args.weight_CTR,
                         weight_loss_InfoNCE=args.weight_InfoNCE,
                         weight_loss_CL=args.weight_CL,
                         beta_temp=args.beta_temp)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
                     cluster_distribution=cluster_distribution,
                     cluster_mean=cluster_mean,
                     cluster_label=cluster_label,
-                    weight_loss_CTR=args.weight_CTR,
+                    weight_CTR=args.weight_CTR,
                     pretrained_WE=pretrainWE if args.use_pretrainWE else None)
     else:
         print(f"Wrong model")
