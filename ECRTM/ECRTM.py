@@ -19,6 +19,7 @@ class ECRTM(nn.Module):
 
         self.num_topics = num_topics
         self.beta_temp = beta_temp
+        self.weight_CTR = weight_CTR
 
         self.a = 1 * np.ones((1, num_topics)).astype(np.float32)
         self.mu2 = nn.Parameter(torch.as_tensor((np.log(self.a).T - np.mean(np.log(self.a), 1)).T))
