@@ -158,7 +158,7 @@ if __name__ == "__main__":
         os.path.join(current_run_dir, 'top_words_15.txt'))
     print(f"TC_15: {TC_15:.5f}")
 
-    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_CTR{args.weight_CTR}.txt"
+    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_dropout{args.dropout}_w_ECR{args.weight_ECR}_alpha_ECR{args.alpha_ECR}_CTR{args.weight_CTR}.txt"
     filename = filename.replace(' ', '_')
     filepath = os.path.join(current_run_dir, filename)
     with open(filepath, 'w') as f:
