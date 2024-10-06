@@ -7,7 +7,7 @@ class FSAM(torch.optim.Optimizer):
 
         # Thêm
         self.device = device
-
+        self.rho = rho
         self.sigma = sigma
         self.lmbda = lmbda
 

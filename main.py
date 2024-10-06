@@ -3,6 +3,7 @@ import os
 import numpy as np
 import basic_trainer
 from NeuroMax.NeuroMax import NeuroMax
+from ECRTM.ECRTM import ECRTM
 import evaluations
 import datasethandler
 import scipy
@@ -71,8 +72,6 @@ if __name__ == "__main__":
                         weight_loss_InfoNCE=args.weight_InfoNCE,
                         weight_loss_CL=args.weight_CL,
                         beta_temp=args.beta_temp)
-        model.weight_loss_GR = args.weight_GR
-        model.weight_loss_ECR = args.weight_ECR
 
     elif args.model == 'ETM':
         model = ETM(vocab_size=dataset.vocab_size, 
@@ -84,11 +83,28 @@ if __name__ == "__main__":
                     cluster_label=cluster_label,
                     weight_CTR=args.weight_CTR,
                     pretrained_WE=pretrainWE if args.use_pretrainWE else None)
+    
+
+    elif args.model == 'ECRTM':
+        model = ETM(vocab_size=dataset.vocab_size, 
+                    num_topics=args.num_topics, 
+                    dropout=args.dropout, 
+                    cluster_distribution=cluster_distribution,
+                    cluster_mean=cluster_mean,
+                    cluster_label=cluster_label,
+                    weight_CTR=args.weight_CTR,
+                    beta_temp=args.beta_temp,
+                    weight_loss_ECR=args.weight_ECR,
+                    alpha_ECR=args.alpha_ECR,
+                    pretrained_WE=pretrainWE if args.use_pretrainWE else None)
+
     else:
         print(f"Wrong model")
 
 
     model = model.to(args.device)
+
+
 
     # create a trainer
     trainer = basic_trainer.BasicTrainer(model, epochs=args.epochs,
@@ -99,6 +115,7 @@ if __name__ == "__main__":
                                             device=args.device,
                                             sigma=args.sigma,
                                             lmbda=args.lmbda,
+                                            rho=args.rho,
                                             sam_name = args.sam_name,
                                             model_name = args.model,
                                             threshold=args.threshold

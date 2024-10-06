@@ -28,7 +28,6 @@ def add_model_argument(parser):
     parser.add_argument('--beta_temp', type=float, default=0.2)
     parser.add_argument('--threshold', type=float, default=10)
 
-    
 
 
 def add_training_argument(parser):
@@ -49,8 +48,8 @@ def add_training_argument(parser):
                         help='step size for learning rate scheduler')
 
     # FSAM
-    # parser.add_argument('--rho', type=float, default=0.05,
-    #                     help='rho')
+    parser.add_argument('--rho', type=float, default=0.05,
+                        help='rho')
     parser.add_argument('--sigma', type=float, default=1,
                         help='sigma') 
     parser.add_argument('--lmbda', type=float, default=0.9,

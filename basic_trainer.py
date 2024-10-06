@@ -12,7 +12,7 @@ from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
     def __init__(self, model, epochs=200, model_name = 'model_name', sam_name = 'sam_name', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
-                sigma=1, lmbda=0.9, device='cuda', acc_step=8, log_interval=5, threshold = 10):
+                sigma=1, lmbda=0.9, device='cuda', acc_step=8, log_interval=5, rho = 0.05, threshold = 10):
         self.model = model
         self.epochs = epochs
         self.learning_rate = learning_rate
@@ -25,7 +25,7 @@ class BasicTrainer:
         self.sam_name = sam_name
         self.threshold = threshold
 
-        # self.rho = rho 
+        self.rho = rho 
         self.device = device
         self.sigma = sigma
         self.lmbda = lmbda
@@ -48,7 +48,7 @@ class BasicTrainer:
             optimizer = FSAM(
                 self.model.parameters(),
                 base_optimizer, device=self.device,
-                lr=self.learning_rate,
+                lr=self.learning_rate, rho=self.rho,
                 sigma=self.sigma, lmbda=self.lmbda
                 )
 
@@ -101,7 +101,7 @@ class BasicTrainer:
 
                 if self.model_name == 'NeuroMax':
                     rst_dict = self.model(indices, batch_data, epoch_id=epoch)
-                elif self.model_name == 'ETM':
+                elif self.model_name == 'ETM' or self.model_name == 'ECRTM':
                     rst_dict = self.model(batch_data)
 
                 batch_loss = rst_dict['loss']
@@ -117,14 +117,14 @@ class BasicTrainer:
                         batch_loss_adv.backward()
                         sam_optimizer.second_step(zero_grad=True)
                     
-                    elif (self.sam_name == 'FSAM' and self.model_name == 'ETM'):
+                    elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM' or self.model_name == 'ECRTM'):
                         sam_optimizer.first_step(zero_grad=True)
                         rst_dict_adv = self.model(batch_data)
                         batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
                         batch_loss_adv.backward()
                         sam_optimizer.second_step(zero_grad=True)
                     
-                    elif (self.sam_name == 'TRAM' and self.model_name == 'ETM'):
+                    elif (self.sam_name == 'TRAM') and (self.model_name == 'ETM'):
                         theta, _, a = self.model.get_theta(batch_data[0])
                         loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                         sam_optimizer.first_step(loss_ctr_,
@@ -135,8 +135,19 @@ class BasicTrainer:
 
                         sam_optimizer.second_step(zero_grad=True)
                     
+                    elif (self.sam_name == 'TRAM') and (self.model_name == 'ECRTM'):
+                        theta, _ = self.model.get_theta(batch_data[0])
+                        loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                        sam_optimizer.first_step(loss_ctr_,
+                                                zero_grad=True)
+                        rst_dict_adv = self.model(batch_data)
+                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                        batch_loss_adv.backward()
+
+                        sam_optimizer.second_step(zero_grad=True)
+                    
                     elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
-                        theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                        theta, _ = self.model.encode(batch_data[0])
                         loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                         sam_optimizer.first_step(loss_ctr_,
                                             zero_grad=True)
