@@ -118,7 +118,8 @@ if __name__ == "__main__":
                                             rho=args.rho,
                                             sam_name = args.sam_name,
                                             model_name = args.model,
-                                            threshold=args.threshold
+                                            threshold=args.threshold,
+                                            use_sam=args.use_sam
                                             )
 
 

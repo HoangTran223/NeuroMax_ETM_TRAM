@@ -12,7 +12,7 @@ from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
     def __init__(self, model, epochs=200, model_name = 'model_name', sam_name = 'sam_name', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
-                sigma=1, lmbda=0.9, device='cuda', acc_step=8, log_interval=5, rho = 0.05, threshold = 10):
+                sigma=1, lmbda=0.9, use_sam = 1, device='cuda', acc_step=8, log_interval=5, rho = 0.05, threshold = 10):
         self.model = model
         self.epochs = epochs
         self.learning_rate = learning_rate
@@ -26,6 +26,7 @@ class BasicTrainer:
         self.threshold = threshold
 
         self.rho = rho 
+        self.use_sam = use_sam
         self.device = device
         self.sigma = sigma
         self.lmbda = lmbda
@@ -88,6 +89,9 @@ class BasicTrainer:
 
         data_size = len(dataset_handler.train_dataloader.dataset)
 
+        if self.use_sam == 0:
+            print("Don't use SAM")
+
         for epoch in tqdm(range(1, self.epochs + 1)):
             self.model.train()
             loss_rst_dict = defaultdict(float)
@@ -107,60 +111,67 @@ class BasicTrainer:
                 batch_loss = rst_dict['loss']
                 batch_loss.backward()
 
-                if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
-                    # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
-                    # theta, _, a = self.model.get_theta(batch_data[0])
-                    if (self.sam_name == 'FSAM' and self.model_name == 'NeuroMax'):
-                        sam_optimizer.first_step(zero_grad=True)
-                        rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                        batch_loss_adv.backward()
-                        sam_optimizer.second_step(zero_grad=True)
-                    
-                    elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM' or self.model_name == 'ECRTM'):
-                        sam_optimizer.first_step(zero_grad=True)
-                        rst_dict_adv = self.model(batch_data)
-                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                        batch_loss_adv.backward()
-                        sam_optimizer.second_step(zero_grad=True)
-                    
-                    elif (self.sam_name == 'TRAM') and (self.model_name == 'ETM'):
-                        theta, _, a = self.model.get_theta(batch_data[0])
-                        loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                        sam_optimizer.first_step(loss_ctr_,
-                                                zero_grad=True)
-                        rst_dict_adv = self.model(batch_data)
-                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                        batch_loss_adv.backward()
-
-                        sam_optimizer.second_step(zero_grad=True)
-                    
-                    elif (self.sam_name == 'TRAM') and (self.model_name == 'ECRTM'):
-                        theta, _ = self.model.get_theta(batch_data[0])
-                        loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                        sam_optimizer.first_step(loss_ctr_,
-                                                zero_grad=True)
-                        rst_dict_adv = self.model(batch_data)
-                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                        batch_loss_adv.backward()
-
-                        sam_optimizer.second_step(zero_grad=True)
-                    
-                    elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
-                        theta, _ = self.model.encode(batch_data[0])
-                        loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                        sam_optimizer.first_step(loss_ctr_,
-                                            zero_grad=True)
-                        
-                        rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                        batch_loss_adv.backward()
-                        sam_optimizer.second_step(zero_grad=True)
-                    
-
-                else:
+                if self.use_sam == 0:
                     adam_optimizer.step()
                     adam_optimizer.zero_grad()
+                
+
+                else:
+
+                    if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
+                        # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                        # theta, _, a = self.model.get_theta(batch_data[0])
+                        if (self.sam_name == 'FSAM' and self.model_name == 'NeuroMax'):
+                            sam_optimizer.first_step(zero_grad=True)
+                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                            batch_loss_adv.backward()
+                            sam_optimizer.second_step(zero_grad=True)
+                        
+                        elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM' or self.model_name == 'ECRTM'):
+                            sam_optimizer.first_step(zero_grad=True)
+                            rst_dict_adv = self.model(batch_data)
+                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                            batch_loss_adv.backward()
+                            sam_optimizer.second_step(zero_grad=True)
+                        
+                        elif (self.sam_name == 'TRAM') and (self.model_name == 'ETM'):
+                            theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
+                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            sam_optimizer.first_step(loss_ctr_,
+                                                    zero_grad=True)
+                            rst_dict_adv = self.model(batch_data)
+                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                            batch_loss_adv.backward()
+
+                            sam_optimizer.second_step(zero_grad=True)
+                        
+                        elif (self.sam_name == 'TRAM') and (self.model_name == 'ECRTM'):
+                            theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
+                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            sam_optimizer.first_step(loss_ctr_,
+                                                    zero_grad=True)
+                            rst_dict_adv = self.model(batch_data)
+                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                            batch_loss_adv.backward()
+
+                            sam_optimizer.second_step(zero_grad=True)
+                        
+                        elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
+                            theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            sam_optimizer.first_step(loss_ctr_,
+                                                zero_grad=True)
+                            
+                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                            batch_loss_adv.backward()
+                            sam_optimizer.second_step(zero_grad=True)
+                        
+
+                    else:
+                        adam_optimizer.step()
+                        adam_optimizer.zero_grad()
 
                 for key in rst_dict:
                     try:
