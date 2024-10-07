@@ -44,6 +44,11 @@ class BasicTrainer:
     
 
     def make_sam_optimizer(self,):
+        args_dict = {
+            'params': self.model.parameters(),
+            'lr': self.learning_rate,
+        }
+
         base_optimizer = torch.optim.SGD
         if self.sam_name == 'FSAM':
             optimizer = FSAM(
@@ -52,13 +57,14 @@ class BasicTrainer:
                 lr=self.learning_rate, rho=self.rho,
                 sigma=self.sigma, lmbda=self.lmbda
                 )
-
         elif self.sam_name == 'TRAM':
             optimizer = TRAM(
                     self.model.parameters(),
                     base_optimizer, device=self.device,
                     lr=self.learning_rate,
                     sigma=self.sigma, lmbda=self.lmbda)
+        else:
+            optimizer = torch.optim.Adam(**args_dict)
 
         return optimizer
 
