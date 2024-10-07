@@ -59,9 +59,7 @@ class BasicTrainer:
                     base_optimizer, device=self.device,
                     lr=self.learning_rate,
                     sigma=self.sigma, lmbda=self.lmbda)
-        else:
-            print("WRONG!!")
-            
+
         return optimizer
 
 
