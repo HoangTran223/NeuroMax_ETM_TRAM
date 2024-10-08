@@ -51,6 +51,7 @@ if __name__ == "__main__":
         as_tensor=True, batch_size=args.batch_size)
 
 
+
     # create a model
     pretrainWE = scipy.sparse.load_npz(os.path.join(
         DATA_DIR, args.dataset, "word_embeddings.npz")).toarray()
