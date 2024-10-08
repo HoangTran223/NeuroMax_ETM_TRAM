@@ -106,9 +106,9 @@ class BasicTrainer:
             # else: is_CTR = False
 
             # for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
-            for batch_idx, batch_data in enumerate(dataset_handler.train_dataloader): 
-                *inputs, indices = batch_data
-                # batch_data = inputs
+            for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
+                *inputs, indices = batch
+                batch_data = inputs
 
                 if self.model_name == 'NeuroMax':
                     rst_dict = self.model(indices, batch_data, epoch_id=epoch)
@@ -165,9 +165,9 @@ class BasicTrainer:
                             sam_optimizer.second_step(zero_grad=True)
                         
                         elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
-                            theta, _ = self.model.encode(batch_data[0].to('cuda'))
-                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                            # loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
+                            # theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                            # loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
                                                 zero_grad=True)
                             

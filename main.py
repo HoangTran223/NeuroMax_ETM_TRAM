@@ -102,7 +102,8 @@ if __name__ == "__main__":
     else:
         print(f"Wrong model")
 
-
+    model.weight_loss_GR = args.weight_GR
+    model.weight_loss_ECR = args.weight_ECR
     model = model.to(args.device)
 
 
