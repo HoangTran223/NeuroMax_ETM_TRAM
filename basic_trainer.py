@@ -11,7 +11,7 @@ from SAM_function.TRAM import TRAM
 from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
-    def __init__(self, model, epochs=200, model_name = 'model_name', sam_name = 'sam_name', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
+    def __init__(self, model, epochs=200, model_name = 'NeuroMax', sam_name = 'TRAM', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
                 sigma=1, lmbda=0.9, use_sam = 1, device='cuda', acc_step=8, log_interval=5, rho = 0.05, threshold = 10):
         self.model = model
         self.epochs = epochs
@@ -106,9 +106,9 @@ class BasicTrainer:
             # else: is_CTR = False
 
             # for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
-            for batch_idx, batch_data in enumerate(dataset_handler.train_dataloader): 
-                *inputs, indices = batch_data
-                # batch_data = inputs
+            for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
+                *inputs, indices = batch
+                batch_data = inputs
 
                 if self.model_name == 'NeuroMax':
                     rst_dict = self.model(indices, batch_data, epoch_id=epoch)

@@ -3,8 +3,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from .ECR import ECR
-from .GR import GR
-from .CTR import CTR
+from NeuroMax.ECR import ECR
+from NeuroMax.CTR import CTR
 import torch_kmeans
 import logging
 import sentence_transformers
