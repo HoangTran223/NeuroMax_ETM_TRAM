@@ -199,7 +199,7 @@ class NeuroMax(nn.Module):
         average_loss_CTR = torch.mean(torch.stack(loss_list))
         return average_loss_CTR"""
     
-    def get_loss_CTR(self, theta, indices):
+    def get_loss_CTR(self, input, indices):
         bow = input[0]
         theta, _ = self.encode(bow)
         cd_batch = self.cluster_distribution[indices]  
