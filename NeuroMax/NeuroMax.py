@@ -190,8 +190,8 @@ class NeuroMax(nn.Module):
         loss_GR = self.GR(cost, self.group_connection_regularizer)
         return loss_GR
     
-    def get_loss_CTR(self, theta, indices):
-    # def get_loss_CTR(self, input, indices):
+    # def get_loss_CTR(self, theta, indices):
+    def get_loss_CTR(self, input, indices):
         bow = input[0]
         theta, _ = self.encode(bow)
         cd_batch = self.cluster_distribution[indices]  
