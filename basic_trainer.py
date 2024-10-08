@@ -106,9 +106,9 @@ class BasicTrainer:
             # else: is_CTR = False
 
             # for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
-            for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
-                *inputs, indices = batch
-                batch_data = inputs
+            for batch_idx, batch_data in enumerate(dataset_handler.train_dataloader): 
+                *inputs, indices = batch_data
+                # batch_data = inputs
 
                 if self.model_name == 'NeuroMax':
                     rst_dict = self.model(indices, batch_data, epoch_id=epoch)
