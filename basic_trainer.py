@@ -165,9 +165,9 @@ class BasicTrainer:
                             sam_optimizer.second_step(zero_grad=True)
                         
                         elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
-                            # theta, _ = self.model.encode(batch_data[0].to('cuda'))
-                            # loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                            loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
+                            theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            # loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
                                                 zero_grad=True)
                             
