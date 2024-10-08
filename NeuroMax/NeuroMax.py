@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from .ECR import ECR
+from NeuroMax.GR import GR
 from NeuroMax.ECR import ECR
 from NeuroMax.CTR import CTR
 import torch_kmeans
