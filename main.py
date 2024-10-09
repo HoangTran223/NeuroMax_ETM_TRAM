@@ -121,7 +121,8 @@ if __name__ == "__main__":
                                             sam_name = args.sam_name,
                                             model_name = args.model,
                                             threshold=args.threshold,
-                                            use_sam=args.use_sam
+                                            use_sam=args.use_sam,
+                                            adaptive=args.adaptive
                                             )
 
 

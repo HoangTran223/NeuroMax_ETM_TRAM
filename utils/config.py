@@ -57,7 +57,7 @@ def add_training_argument(parser):
                         help='lmbda') 
     parser.add_argument('--acc_step', type=float, default=8,
                         help='acc_step') 
-
+    parser.add_argument('--adaptive', type=bool, help='adaptive_or_note')
 
 def save_config(args, path):
     with open(path, 'w') as f:
