@@ -15,7 +15,7 @@ class FSAM(torch.optim.Optimizer):
         self.base_optimizer = base_optimizer(self.param_groups)     
         self.param_groups = self.base_optimizer.param_groups
         self.defaults.update(self.base_optimizer.defaults)
-        print ('FriendlySAM sigma:', self.sigma, 'lambda:', self.lmbda, self.adaptive)
+        print ('FriendlySAM sigma:', self.sigma, 'lambda:', self.lmbda)
     
     def _grad_norm(self):
         norm = torch.norm(

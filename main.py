@@ -124,6 +124,7 @@ if __name__ == "__main__":
                                             use_sam=args.use_sam,
                                             adaptive=args.adaptive
                                             )
+    print(f"Adaptive: {args.adaptive}")  # In ra để kiểm tra giá trị hiện tại của adaptive
 
 
     # train the model
