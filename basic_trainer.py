@@ -12,7 +12,7 @@ from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
     def __init__(self, model, epochs=200, model_name = 'NeuroMax', sam_name = 'TRAM', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
-                sigma=1, lmbda=0.9, use_sam = 1, device='cuda', acc_step=8, log_interval=5, rho = 0.05, adaptive = 'False', threshold = 10):
+                sigma=1, lmbda=0.9, use_sam = 1, device='cuda', acc_step=8, log_interval=5, rho = 0.05, adaptive = 1, threshold = 10):
         self.model = model
         self.epochs = epochs
         self.learning_rate = learning_rate
