@@ -58,7 +58,7 @@ def add_training_argument(parser):
     parser.add_argument('--acc_step', type=float, default=8,
                         help='acc_step') 
 
-    parser.add_argument('--adaptive', type=int, default=1)
+    parser.add_argument('--adaptive', type=int, default=0)
 
 def save_config(args, path):
     with open(path, 'w') as f:
