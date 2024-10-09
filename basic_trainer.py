@@ -56,7 +56,8 @@ class BasicTrainer:
                 self.model.parameters(),
                 base_optimizer, device=self.device,
                 lr=self.learning_rate, rho=self.rho,
-                sigma=self.sigma, lmbda=self.lmbda
+                sigma=self.sigma, lmbda=self.lmbda,
+                adaptive=self.adaptive
                 )
         elif self.sam_name == 'TRAM':
             optimizer = TRAM(
