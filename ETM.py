@@ -125,7 +125,7 @@ class ETM(nn.Module):
     def forward(self, indices, input, epoch_id = None, avg_loss=True):
 
         bow = input[0]
-        theta, mu, logvar = self.get_theta(x)
+        theta, mu, logvar = self.get_theta(input)
         beta = self.get_beta()
         recon_x = torch.matmul(theta, beta)
 
@@ -134,7 +134,7 @@ class ETM(nn.Module):
         # else:
         #     loss_CTR = 0.0
 
-        loss = self.loss_function(x, recon_x, mu, logvar, avg_loss)
+        loss = self.loss_function(input, recon_x, mu, logvar, avg_loss)
         # loss += loss_CTR
 
         rst_dict = {
