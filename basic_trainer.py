@@ -112,11 +112,7 @@ class BasicTrainer:
                 *inputs, indices = batch
                 batch_data = inputs
 
-                if self.model_name == 'NeuroMax':
-                    rst_dict = self.model(indices, batch_data, epoch_id=epoch)
-                elif self.model_name == 'ETM' or self.model_name == 'ECRTM':
-                    rst_dict = self.model(batch_data)
-
+                rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss']
                 batch_loss.backward()
 
@@ -124,7 +120,6 @@ class BasicTrainer:
                     adam_optimizer.step()
                     adam_optimizer.zero_grad()
                 
-
                 else:
 
                     if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
@@ -137,19 +132,19 @@ class BasicTrainer:
                             batch_loss_adv.backward()
                             sam_optimizer.second_step(zero_grad=True)
                         
-                        elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM' or self.model_name == 'ECRTM'):
+                        elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM'):
                             sam_optimizer.first_step(zero_grad=True)
-                            rst_dict_adv = self.model(batch_data)
+                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
                             batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
                             batch_loss_adv.backward()
                             sam_optimizer.second_step(zero_grad=True)
                         
                         elif (self.sam_name == 'TRAM') and (self.model_name == 'ETM'):
-                            theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
-                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
+                            # theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
+                            loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
                                                     zero_grad=True)
-                            rst_dict_adv = self.model(batch_data)
+                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
                             batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
                             batch_loss_adv.backward()
 

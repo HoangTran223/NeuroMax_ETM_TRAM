@@ -14,7 +14,7 @@ class ETM(nn.Module):
         Adji B. Dieng, Francisco J. R. Ruiz, David M. Blei.
     '''
     def __init__(self, vocab_size, embed_size=200, num_topics=50, num_groups=10, en_units=800, dropout=0., 
-                    cluster_distribution=None, cluster_mean=None, cluster_label=None, weight_CTR = 1,
+                    cluster_distribution=None, cluster_mean=None, cluster_label=None, weight_CTR = 1, is_CTR=False,
                     pretrained_WE=None, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, train_WE=False):
         super().__init__()
 
@@ -39,10 +39,11 @@ class ETM(nn.Module):
         self.weight_CTR = weight_CTR
         self.num_topics = num_topics
         self.num_groups = num_groups
+        # self.is_CTR = is_CTR
 
-        self.fc11 = nn.Linear(vocab_size, en_units)
-        self.fc12 = nn.Linear(en_units, en_units)
-        self.fc1_dropout = nn.Dropout(dropout)
+        # self.fc11 = nn.Linear(vocab_size, en_units)
+        # self.fc12 = nn.Linear(en_units, en_units)
+        # self.fc1_dropout = nn.Dropout(dropout)
         
 
         self.mean_bn = nn.BatchNorm1d(num_topics)
@@ -121,17 +122,26 @@ class ETM(nn.Module):
         beta = F.softmax(torch.matmul(self.topic_embeddings, self.word_embeddings.T), dim=1)
         return beta
 
-    def forward(self, x, avg_loss=True):
+    def forward(self, indices, input, epoch_id = None, avg_loss=True):
 
-        # x = x['data']
-        x = x[0]
-        # contextual_emb = input[1]
+        bow = input[0]
         theta, mu, logvar = self.get_theta(x)
         beta = self.get_beta()
         recon_x = torch.matmul(theta, beta)
 
+        # if self.is_CTR:
+        #     loss_CTR = self.get_loss_CTR(input, indices)
+        # else:
+        #     loss_CTR = 0.0
+
         loss = self.loss_function(x, recon_x, mu, logvar, avg_loss)
-        return {'loss': loss}
+        # loss += loss_CTR
+
+        rst_dict = {
+            'loss': loss,
+            'loss_CTR': loss_CTR
+        }
+        return rst_dict
 
     def loss_function(self, x, recon_x, mu, logvar, avg_loss=True):
         recon_loss = -(x * (recon_x + 1e-12).log()).sum(1)
@@ -144,7 +154,9 @@ class ETM(nn.Module):
         return loss
         
 
-    def get_loss_CTR(self, theta, indices):
+    def get_loss_CTR(self, input, indices):
+        bow = input[0]
+        theta, mu, logvar = self.get_theta(bow)
         cd_batch = self.cluster_distribution[indices]  
         cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
         loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  

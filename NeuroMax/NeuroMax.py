@@ -183,7 +183,7 @@ class NeuroMax(nn.Module):
             self.topic_embeddings, self.word_embeddings)
         loss_ECR = self.ECR(cost)
         return loss_ECR
-
+    
     def get_loss_GR(self):
         cost = self.pairwise_euclidean_distance(
             self.topic_embeddings, self.topic_embeddings) + 1e1 * torch.ones(self.num_topics, self.num_topics).cuda()
