@@ -139,7 +139,7 @@ class ETM(nn.Module):
 
         rst_dict = {
             'loss': loss,
-            'loss_CTR': loss_CTR
+            # 'loss_CTR': loss_CTR
         }
         return rst_dict
 
