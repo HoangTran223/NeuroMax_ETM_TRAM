@@ -106,11 +106,11 @@ class ETM(nn.Module):
 
 
 
-    def get_theta(self, x):
+    def get_theta(self, input):
         # Warn: normalize the input if use Relu.
         # https://github.com/adjidieng/ETM/issues/3
-        norm_x = x / x.sum(1, keepdim=True)
-        mu, logvar = self.encode(norm_x)
+        norm_input = input / input.sum(1, keepdim=True)
+        mu, logvar = self.encode(norm_input)
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=-1)
         if self.training:
@@ -125,16 +125,16 @@ class ETM(nn.Module):
     def forward(self, indices, input, epoch_id = None, avg_loss=True):
 
         bow = input[0]
-        theta, mu, logvar = self.get_theta(input)
+        theta, mu, logvar = self.get_theta(bow)
         beta = self.get_beta()
-        recon_x = torch.matmul(theta, beta)
+        recon_input = torch.matmul(theta, beta)
 
         # if self.is_CTR:
         #     loss_CTR = self.get_loss_CTR(input, indices)
         # else:
         #     loss_CTR = 0.0
 
-        loss = self.loss_function(input, recon_x, mu, logvar, avg_loss)
+        loss = self.loss_function(bow, recon_input, mu, logvar, avg_loss)
         # loss += loss_CTR
 
         rst_dict = {
@@ -143,8 +143,8 @@ class ETM(nn.Module):
         }
         return rst_dict
 
-    def loss_function(self, x, recon_x, mu, logvar, avg_loss=True):
-        recon_loss = -(x * (recon_x + 1e-12).log()).sum(1)
+    def loss_function(self, bow, recon_input, mu, logvar, avg_loss=True):
+        recon_loss = -(bow * (recon_input + 1e-12).log()).sum(1)
         KLD = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).sum(1)
         loss = (recon_loss + KLD)
 
