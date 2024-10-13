@@ -83,24 +83,53 @@ class ETM(nn.Module):
         return cost
 
 
+    # def get_theta(self, input):
+    #     # Warn: normalize the input if use Relu.
+    #     # https://github.com/adjidieng/ETM/issues/3
+    #     # norm_input = input / input.sum(1, keepdim=True)
+    #     mu, logvar = self.encode(input)
+    #     z = self.reparameterize(mu, logvar)
+    #     theta = F.softmax(z, dim=-1)
+    #     if self.training:
+    #         return theta, mu, logvar
+    #     else:
+    #         return theta
+
     def get_theta(self, input):
-        # Warn: normalize the input if use Relu.
-        # https://github.com/adjidieng/ETM/issues/3
-        # norm_input = input / input.sum(1, keepdim=True)
+    # Warn: normalize the input if use Relu.
+    # https://github.com/adjidieng/ETM/issues/3
+    # norm_input = input / input.sum(1, keepdim=True)
+    
+        # Ensure input is on the correct device
+        input = input.to('cuda')  # Chuyển input sang GPU nếu cần
+        
         mu, logvar = self.encode(input)
+        mu = mu.to('cuda')
+        logvar = logvar.to('cuda')
+        
         z = self.reparameterize(mu, logvar)
+        z = z.to('cuda')
+        
         theta = F.softmax(z, dim=-1)
+        
         if self.training:
             return theta, mu, logvar
         else:
             return theta
 
+    # def get_beta(self):
+    #     beta = F.softmax(torch.matmul(self.topic_embeddings, self.word_embeddings.T), dim=1)
+    #     return beta
     def get_beta(self):
-        beta = F.softmax(torch.matmul(self.topic_embeddings, self.word_embeddings.T), dim=1)
+        # Ensure embeddings are on the correct device
+        topic_embeddings = self.topic_embeddings.to('cuda')
+        word_embeddings = self.word_embeddings.to('cuda')
+        
+        beta = F.softmax(torch.matmul(topic_embeddings, word_embeddings.T), dim=1)
         return beta
 
     def forward(self, indices, input, avg_loss=True, epoch_id = None):
-        bow = input[0]
+        bow = input[0].to('cuda')
         theta, mu, logvar = self.get_theta(bow)
         beta = self.get_beta()
         recon_input = torch.matmul(theta, beta)
@@ -130,10 +159,29 @@ class ETM(nn.Module):
         return loss
         
 
+    # def get_loss_CTR(self, input, indices):
+    #     bow = input[0]
+    #     theta, mu, logvar = self.get_theta(bow)
+    #     cd_batch = self.cluster_distribution[indices]  
+    #     cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
+    #     loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
+    #     return loss_CTR
+    
     def get_loss_CTR(self, input, indices):
-        bow = input[0]
-        theta, mu, logvar = self.get_theta(bow)
-        cd_batch = self.cluster_distribution[indices]  
-        cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
-        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
+        # Ensure input tensors are on the correct device
+        bow = input[0].to('cuda')  # Chuyển bow sang GPU
+        
+        theta, mu, logvar = self.get_theta(bow)  # get_theta đã dùng CUDA
+        
+        # Ensure cluster distribution and mean are on the correct device
+        cd_batch = self.cluster_distribution[indices].to('cuda')  # Chuyển cluster_distribution sang GPU
+        cluster_mean = self.cluster_mean.to('cuda')
+        topic_embeddings = self.topic_embeddings.to('cuda')
+        
+        # Calculate pairwise Euclidean distance using CUDA tensors
+        cost = self.pairwise_euclidean_distance(cluster_mean, self.map_t2c(topic_embeddings))
+        
+        # Calculate loss_CTR
+        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)
+        
         return loss_CTR
