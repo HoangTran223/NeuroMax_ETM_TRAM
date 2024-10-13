@@ -166,17 +166,17 @@ class ETM(nn.Module):
     #     cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
     #     loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
     #     return loss_CTR
-    
+
     def get_loss_CTR(self, input, indices):
         # Ensure input tensors are on the correct device
         bow = input[0].to('cuda')  # Chuyển bow sang GPU
         
-        theta, mu, logvar = self.get_theta(bow)  # get_theta đã dùng CUDA
+        theta, mu, logvar = self.get_theta(bow) 
         
         # Ensure cluster distribution and mean are on the correct device
-        cd_batch = self.cluster_distribution[indices].to('cuda')  # Chuyển cluster_distribution sang GPU
-        cluster_mean = self.cluster_mean.to('cuda')
-        topic_embeddings = self.topic_embeddings.to('cuda')
+        cd_batch = self.cluster_distribution[indices]  # Chuyển cluster_distribution sang GPU
+        cluster_mean = self.cluster_mean
+        topic_embeddings = self.topic_embeddings
         
         # Calculate pairwise Euclidean distance using CUDA tensors
         cost = self.pairwise_euclidean_distance(cluster_mean, self.map_t2c(topic_embeddings))

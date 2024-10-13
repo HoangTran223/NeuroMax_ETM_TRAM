@@ -97,8 +97,7 @@ if __name__ == "__main__":
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
                         weight_CTR=args.weight_CTR)
         
-        print(f"Wrong model")
-    
+
     # model.weight_loss_GR = args.weight_GR
     # model.weight_loss_ECR = args.weight_ECR
     model = model.to(args.device)
