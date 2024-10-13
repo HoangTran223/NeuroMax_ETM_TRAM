@@ -9,6 +9,7 @@ import os
 import scipy
 from SAM_function.TRAM import TRAM
 from SAM_function.FSAM import FSAM
+import matplotlib.pyplot as plt
 
 class BasicTrainer:
     def __init__(self, model, epochs=200, model_name = 'NeuroMax', sam_name = 'TRAM', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
@@ -196,6 +197,49 @@ class BasicTrainer:
 
                 print(output_log)
                 self.logger.info(output_log)
+        # Vẽ loss landscape sau khi huấn luyện
+        self.plot_loss_landscape(dataset_handler)   
+
+    def plot_loss_landscape(self, dataset_handler, num_points=100):
+        # Bước 1: Lưu trọng số ban đầu
+        original_params = [param.data.clone() for param in self.model.parameters()]
+
+        # Bước 2: Tạo các giá trị cho weight perturbation
+        perturbations = np.linspace(-1, 1, num_points)
+        loss_values = np.zeros((num_points, num_points))
+
+        # Bước 3: Tính toán loss cho từng cặp perturbation
+        for i in range(num_points):
+            for j in range(num_points):
+                # Tính toán perturbation
+                with torch.no_grad():
+                    for k, param in enumerate(self.model.parameters()):
+                        # Tạo perturbation cho trọng số
+                        perturbation = perturbations[i] * torch.randn_like(param.data) + perturbations[j] * torch.randn_like(param.data)
+                        param.data = original_params[k] + perturbation
+
+                    # Tính toán loss bằng cách sử dụng phương thức phù hợp trong mô hình
+                    # Sử dụng cùng một phương thức như trong quá trình huấn luyện
+                    rst_dict = self.model(indices=None, batch_data=dataset_handler.train_data)  # hoặc phương thức nào mà bạn đã sử dụng để tính toán loss
+                    loss_values[i, j] = rst_dict['loss'].item()
+
+                    # Đặt lại trọng số về ban đầu
+                    for k, param in enumerate(self.model.parameters()):
+                        param.data = original_params[k]  # Quay lại trọng số ban đầu
+
+        # Bước 4: Vẽ loss landscape
+        plt.figure(figsize=(10, 8))
+        plt.contourf(perturbations, perturbations, loss_values, levels=50, cmap='viridis')
+        plt.colorbar(label='Loss')
+        plt.title('Loss Landscape')
+        plt.xlabel('Perturbation 1')
+        plt.ylabel('Perturbation 2')
+        plt.grid()
+        plt.show()
+
+
+
+
 
     def test(self, input_data):
         data_size = input_data.shape[0]

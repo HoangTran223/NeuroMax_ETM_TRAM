@@ -41,11 +41,6 @@ class ETM(nn.Module):
         self.num_groups = num_groups
         # self.is_CTR = is_CTR
 
-        # self.fc11 = nn.Linear(vocab_size, en_units)
-        # self.fc12 = nn.Linear(en_units, en_units)
-        # self.fc1_dropout = nn.Dropout(dropout)
-        
-
         self.mean_bn = nn.BatchNorm1d(num_topics)
         self.mean_bn.weight.requires_grad = False
         self.logvar_bn = nn.BatchNorm1d(num_topics)
@@ -82,28 +77,10 @@ class ETM(nn.Module):
         return self.fc21(e1), self.fc22(e1)
     
 
-    # # Thêm
-    # def get_representation(self, input):
-    #     e1 = F.softplus(self.fc11(input))
-    #     e1 = F.softplus(self.fc12(e1))
-    #     e1 = self.fc1_dropout(e1)
-    #     mu = self.mean_bn(self.fc21(e1))
-    #     logvar = self.logvar_bn(self.fc22(e1))
-    #     z = self.reparameterize(mu, logvar)
-    #     theta = F.softmax(z, dim=1)
-    #     return theta, mu, logvar
-
-    # def encode1(self, input):
-    #     theta, mu, logvar = self.get_representation(input)
-    #     loss_KL = self.compute_loss_KL(mu, logvar)
-    #     return theta, loss_KL
-
     def pairwise_euclidean_distance(self, x, y):
         cost = torch.sum(x ** 2, axis=1, keepdim=True) + \
             torch.sum(y ** 2, dim=1) - 2 * torch.matmul(x, y.t())
         return cost
-    # #
-
 
 
     def get_theta(self, input):
@@ -122,7 +99,7 @@ class ETM(nn.Module):
         beta = F.softmax(torch.matmul(self.topic_embeddings, self.word_embeddings.T), dim=1)
         return beta
 
-    def forward(self, indices, input, epoch_id = None, avg_loss=True):
+    def forward(self, indices, input, avg_loss=True, epoch_id = None):
 
         bow = input[0]
         theta, mu, logvar = self.get_theta(bow)
@@ -147,10 +124,8 @@ class ETM(nn.Module):
         recon_loss = -(bow * (recon_input + 1e-12).log()).sum(1)
         KLD = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).sum(1)
         loss = (recon_loss + KLD)
-
         if avg_loss:
             loss = loss.mean()
-
         return loss
         
 

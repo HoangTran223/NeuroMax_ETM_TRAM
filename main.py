@@ -124,11 +124,11 @@ if __name__ == "__main__":
                                             use_sam=args.use_sam,
                                             adaptive=args.adaptive
                                             )
-    print(f"Adaptive: {args.adaptive}")  # In ra để kiểm tra giá trị hiện tại của adaptive
-
 
     # train the model
     trainer.train(dataset)
+
+    trainer.plot_loss_landscape(dataset, num_points=100)
 
     # save beta, theta and top words
     beta = trainer.save_beta(current_run_dir)
