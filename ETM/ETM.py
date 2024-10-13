@@ -120,7 +120,8 @@ class ETM(nn.Module):
         }
         return rst_dict
 
-    def loss_function(self, bow, recon_input, mu, logvar, avg_loss=True):
+    # def loss_function(self, bow, recon_input, mu, logvar, avg_loss=True):
+    def loss_function(self, bow, recon_input, mu, logvar, avg_loss=False):
         recon_loss = -(bow * (recon_input + 1e-12).log()).sum(1)
         KLD = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).sum(1)
         loss = (recon_loss + KLD)
