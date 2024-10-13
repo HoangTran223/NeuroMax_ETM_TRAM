@@ -79,8 +79,10 @@ class ETM(nn.Module):
     
 
     def pairwise_euclidean_distance(self, x, y):
-        cost = torch.sum(x ** 2, axis=1, keepdim=True) + \
-            torch.sum(y ** 2, dim=1) - 2 * torch.matmul(x, y.t())
+        x, y = x.to('cuda', non_blocking=True), y.to('cuda', non_blocking=True)
+        cost = torch.cdist(x, y, p=2)
+        # cost = torch.sum(x ** 2, axis=1, keepdim=True) + \
+        #     torch.sum(y ** 2, dim=1) - 2 * torch.matmul(x, y.t())
         return cost
 
 
@@ -88,6 +90,7 @@ class ETM(nn.Module):
         # Warn: normalize the input if use Relu.
         # https://github.com/adjidieng/ETM/issues/3
         # norm_input = input / input.sum(1, keepdim=True)
+        input = input.to('cuda', non_blocking=True)
         mu, logvar = self.encode(input)
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=-1)
@@ -110,16 +113,16 @@ class ETM(nn.Module):
 
         loss = self.loss_function(bow, recon_input, mu, logvar, avg_loss)
 
-        # if self.is_CTR:
-        #      loss_CTR = self.get_loss_CTR(input, indices)
-        # else:
-        #      loss_CTR = 0.0
+        if self.is_CTR:
+             loss_CTR = self.get_loss_CTR(input, indices)
+        else:
+             loss_CTR = 0.0
 
-        # loss += loss_CTR
+        loss += loss_CTR
 
         rst_dict = {
             'loss': loss,
-            #'loss_CTR': loss_CTR
+            'loss_CTR': loss_CTR
         }
         return rst_dict
 
@@ -134,9 +137,9 @@ class ETM(nn.Module):
         
 
     def get_loss_CTR(self, input, indices):
-        bow = input[0]
+        bow = input[0].to('cuda', non_blocking=True)
         theta, mu, logvar = self.get_theta(bow)
-        cd_batch = self.cluster_distribution[indices]  
+        cd_batch = self.cluster_distribution[indices].to('cuda', non_blocking=True)
         cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
         loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
         return loss_CTR

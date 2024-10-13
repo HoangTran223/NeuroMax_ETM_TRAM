@@ -129,53 +129,30 @@ class BasicTrainer:
                     adam_optimizer.zero_grad()
                 else:
 
-                    if (batch_id + 1) % accumulation_steps == 0 or (batch_id + 1) == len(dataset_handler.train_dataloader):
-                        # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
-                        # theta, _, a = self.model.get_theta(batch_data[0])
-
-                        if (self.SAM_name == 'FSAM') and (self.model_name == 'ETM'):
-                            sam_optimizer.first_step(zero_grad=True)
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
-                            sam_optimizer.second_step(zero_grad=True)
+                    #if (batch_id + 1) % accumulation_steps == 0 or (batch_id + 1) == len(dataset_handler.train_dataloader):
+                    if epoch_id > self.epoch_threshold:
+                        #theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                        #loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                         
-                        elif (self.SAM_name == 'TRAM') and (self.model_name == 'ETM'):
-                            # self.model.is_CTR = False
-                            # theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
+                        if self.SAM_name == 'TRAM':
+                            self.model.is_CTR = False
                             loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
                                                     zero_grad=True)
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
+                        else:
+                            sam_optimizer.first_step(zero_grad=True)
 
-                            sam_optimizer.second_step(zero_grad=True)
-                        
-                    # #if (batch_id + 1) % accumulation_steps == 0 or (batch_id + 1) == len(dataset_handler.train_dataloader):
-                    # if epoch_id > self.epoch_threshold:
-                    #     #theta, _ = self.model.encode(batch_data[0].to('cuda'))
-                    #     #loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                        
-                    #     if self.SAM_name == 'TRAM':
-                    #         self.model.is_CTR = False
-                    #         loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
-                    #         sam_optimizer.first_step(loss_ctr_,
-                    #                                 zero_grad=True)
-                    #     else:
-                    #         sam_optimizer.first_step(zero_grad=True)
+                        # rst_dict_adv = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
+                        rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
 
-                    #     # rst_dict_adv = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
-                    #     rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                        batch_loss_adv.backward()
 
-                    #     batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                    #     batch_loss_adv.backward()
-
-                    #     sam_optimizer.second_step(zero_grad=True)
+                        sam_optimizer.second_step(zero_grad=True)
                     
                     else:
-                        # if self.SAM_name == 'TRAM':
-                        #     self.model.is_CTR = True
+                        if self.SAM_name == 'TRAM':
+                            self.model.is_CTR = True
                         adam_optimizer.step()
                         adam_optimizer.zero_grad()
                     
