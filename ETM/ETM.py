@@ -86,8 +86,8 @@ class ETM(nn.Module):
     def get_theta(self, input):
         # Warn: normalize the input if use Relu.
         # https://github.com/adjidieng/ETM/issues/3
-        norm_input = input / input.sum(1, keepdim=True)
-        mu, logvar = self.encode(norm_input)
+        # norm_input = input / input.sum(1, keepdim=True)
+        mu, logvar = self.encode(input)
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=-1)
         if self.training:
