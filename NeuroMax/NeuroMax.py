@@ -2,10 +2,10 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from NeuroMax.GR import GR
-from NeuroMax.ECR import ECR
-from NeuroMax.CTR import CTR
-import torch_kmeans
+from .ECR import ECR
+from .GR import GR
+from .CTR import CTR
+# import torch_kmeans
 import logging
 import sentence_transformers
 
@@ -13,17 +13,17 @@ import sentence_transformers
 class NeuroMax(nn.Module):
     def __init__(self, vocab_size, num_topics=50, num_groups=10, en_units=200, dropout=0.,
                  cluster_distribution=None, cluster_mean=None, cluster_label=None,
-                 pretrained_WE=None, embed_size=200, beta_temp=0.2,
+                 pretrained_WE=None, embed_size=200, beta_temp=0.2, is_CTR=False,
                  weight_loss_ECR=250.0, weight_loss_GR=250.0,
-                 alpha_GR=20.0, alpha_ECR=20.0, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, weight_CTR=100.0,
+                 alpha_GR=20.0, alpha_ECR=20.0, sinkhorn_alpha = 20.0, sinkhorn_max_iter=1000, weight_loss_CTR=100.0,
                  weight_loss_InfoNCE=10.0, weight_loss_CL=50.0):
         super().__init__()
 
-        self.weight_CTR =  weight_CTR
+        self.weight_loss_CTR = weight_loss_CTR
         self.num_topics = num_topics
         self.num_groups = num_groups
         self.beta_temp = beta_temp
-
+        self.is_CTR = is_CTR
         self.a = 1 * np.ones((1, num_topics)).astype(np.float32)
         self.mu2 = nn.Parameter(torch.as_tensor(
             (np.log(self.a).T - np.mean(np.log(self.a), 1)).T))
@@ -64,7 +64,7 @@ class NeuroMax(nn.Module):
             self.cluster_label = self.cluster_label.to(device='cuda', dtype=torch.long)
         
         self.map_t2c = nn.Linear(self.word_embeddings.shape[1], self.cluster_mean.shape[1], bias=False)
-        self.CTR = CTR(weight_CTR, sinkhorn_alpha, sinkhorn_max_iter)
+        self.CTR = CTR(weight_loss_CTR, sinkhorn_alpha, sinkhorn_max_iter)
         #
         self.topic_embeddings = torch.empty(
             (num_topics, self.word_embeddings.shape[1]))
@@ -183,20 +183,19 @@ class NeuroMax(nn.Module):
             self.topic_embeddings, self.word_embeddings)
         loss_ECR = self.ECR(cost)
         return loss_ECR
-    
+
     def get_loss_GR(self):
         cost = self.pairwise_euclidean_distance(
             self.topic_embeddings, self.topic_embeddings) + 1e1 * torch.ones(self.num_topics, self.num_topics).cuda()
         loss_GR = self.GR(cost, self.group_connection_regularizer)
         return loss_GR
     
-    # def get_loss_CTR(self, theta, indices):
     def get_loss_CTR(self, input, indices):
         bow = input[0]
         theta, _ = self.encode(bow)
         cd_batch = self.cluster_distribution[indices]  
         cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
-        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
+        loss_CTR = self.weight_loss_CTR * self.CTR(theta, cd_batch, cost)  
         return loss_CTR
     
     def create_pairs(self, batch_data, indices):
@@ -266,10 +265,10 @@ class NeuroMax(nn.Module):
             
         #CTR
 
-        # if is_CTR:
-        #     loss_CTR = self.get_loss_CTR(input, indices)
-        # else:
-        #     loss_CTR = 0.0
+        if self.is_CTR:
+            loss_CTR = self.get_loss_CTR(input, indices)
+        else:
+            loss_CTR = 0.0
         if epoch_id == 10 and self.group_connection_regularizer is None:
             self.create_group_connection_regularizer()
         if self.group_connection_regularizer is not None and epoch_id > 10:
@@ -280,11 +279,11 @@ class NeuroMax(nn.Module):
         #loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE
         #loss = loss_TM + loss_ECR + loss_GR + loss_CTR + loss_InfoNCE + loss_CL
         # loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE + loss_CL
-        # loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE + loss_CTR
-        loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE
+        loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE + loss_CTR
+        # loss = loss_TM + loss_ECR + loss_GR + loss_InfoNCE
         rst_dict = {
             'loss': loss,
-            #'loss_CTR': loss_CTR,
+            'loss_CTR': loss_CTR,
             'loss_TM': loss_TM,
             'loss_ECR': loss_ECR,
             'loss_GR': loss_GR,

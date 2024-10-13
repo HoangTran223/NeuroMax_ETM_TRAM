@@ -1,5 +1,5 @@
-from gensim.corpora import Dictionary
-from gensim.models import CoherenceModel
+#from gensim.corpora import Dictionary
+#from gensim.models import CoherenceModel
 import numpy as np
 from tqdm import tqdm
 from itertools import combinations
@@ -34,11 +34,9 @@ def TC_on_wikipedia(top_word_path, cv_type='C_V'):
     os.system(
         f"java -jar {os.path.join(jar_dir, 'pametto.jar')} {os.path.join(wiki_dir, 'wikipedia', 'wikipedia_bd')} {cv_type} {top_word_path} > tmp{random_number}.txt")
     cv_score = []
-
     with open(f"tmp{random_number}.txt", "r") as f:
         for line in f.readlines():
             if not line.startswith("202"):
                 cv_score.append(float(line.strip().split()[1]))
-                
     os.remove(f"tmp{random_number}.txt")
     return cv_score, sum(cv_score) / len(cv_score)

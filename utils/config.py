@@ -13,26 +13,26 @@ def add_dataset_argument(parser):
 
 def add_model_argument(parser):
     parser.add_argument('--model', type=str, help='model name')
+    parser.add_argument('--epoch_threshold', type=int, help='use epoch_threshold')
+    parser.add_argument('--use_SAM', type=int, help='use SAM')
+    parser.add_argument('--SAM_name', type=str, help='SAM Variant')
     parser.add_argument('--num_topics', type=int, default=50)
     parser.add_argument('--num_groups', type=int, default=20)
     parser.add_argument('--dropout', type=float, default=0.2)
     parser.add_argument('--use_pretrainWE', action='store_true',
                         default=False, help='Enable use_pretrainWE mode')
-    parser.add_argument('--weight_CTR', type=float, default=100.)
     parser.add_argument('--weight_ECR', type=float, default=40.)
     parser.add_argument('--weight_GR', type=float, default=1.)
     parser.add_argument('--alpha_ECR', type=float, default=20.)
     parser.add_argument('--alpha_GR', type=float, default=5.)
+    parser.add_argument('--weight_CTR', type=float, default=100.)
     parser.add_argument('--weight_InfoNCE', type=float, default=50.)
     parser.add_argument('--weight_CL', type=float, default=2.0)
     parser.add_argument('--beta_temp', type=float, default=0.2)
     parser.add_argument('--threshold', type=float, default=10)
-    parser.add_argument('--use_sam', type=int, help='use SAM')
-
 
 
 def add_training_argument(parser):
-    parser.add_argument('--sam_name', type=str, default='Name', help='name_of_sam')
     parser.add_argument('--epochs', type=int, default=500,
                         help='number of epochs to train the model')
     parser.add_argument('--batch_size', type=int, default=200,
@@ -50,7 +50,7 @@ def add_training_argument(parser):
 
     # FSAM
     parser.add_argument('--rho', type=float, default=0.05,
-                        help='rho')
+                         help='rho')
     parser.add_argument('--sigma', type=float, default=1,
                         help='sigma') 
     parser.add_argument('--lmbda', type=float, default=0.9,
@@ -58,7 +58,6 @@ def add_training_argument(parser):
     parser.add_argument('--acc_step', type=float, default=8,
                         help='acc_step') 
 
-    parser.add_argument('--adaptive', type=int, default=0)
 
 def save_config(args, path):
     with open(path, 'w') as f:

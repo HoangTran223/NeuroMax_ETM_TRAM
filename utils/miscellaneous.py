@@ -3,7 +3,7 @@ import numpy as np
 import os
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-import wandb
+# import wandb
 
 
 def get_current_datetime():

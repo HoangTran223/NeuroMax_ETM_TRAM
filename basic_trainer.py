@@ -7,70 +7,72 @@ from utils import static_utils
 import logging
 import os
 import scipy
+import matplotlib.pyplot as plt
 from SAM_function.TRAM import TRAM
 from SAM_function.FSAM import FSAM
-import matplotlib.pyplot as plt
 
 class BasicTrainer:
-    def __init__(self, model, epochs=200, model_name = 'NeuroMax', sam_name = 'TRAM', learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, 
-                sigma=1, lmbda=0.9, use_sam = 1, device='cuda', acc_step=8, log_interval=5, rho = 0.05, adaptive = 1, threshold = 10):
+    def __init__(self, model, epoch_threshold = 150, model_name='NeuroMax', use_SAM=1, SAM_name='TRAM', epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5, 
+                    rho = 0.005, threshold=10, device='cuda', sigma=0.1, lmbda=0.9, acc_step=8):
         self.model = model
+        self.epoch_threshold = epoch_threshold
+        self.model_name = model_name
+        self.SAM_name = SAM_name
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.lr_scheduler = lr_scheduler
         self.lr_step_size = lr_step_size
         self.log_interval = log_interval
-
-        self.model_name = model_name
-        self.sam_name = sam_name
         self.threshold = threshold
+        self.use_SAM = use_SAM
 
-        self.adaptive = adaptive
         self.rho = rho 
-        self.use_sam = use_sam
         self.device = device
         self.sigma = sigma
         self.lmbda = lmbda
         self.acc_step = acc_step
-
         self.logger = logging.getLogger('main')
 
-    def make_adam_optimizer(self):
+
+
+        # Thêm ctr_loss
+        # self.cluster_distribution = cluster_distribution 
+        # self.cluster_mean = cluster_mean 
+        # self.topic_embeddings = topic_embeddings
+        # self.pairwise_euclidean_distance
+
+        # self.CTR = CTR(weight_loss_CTR, sinkhorn_alpha, OT_max_iter=sinkhorn_max_iter)
+
+    def make_adam_optimizer(self,):
         args_dict = {
             'params': self.model.parameters(),
             'lr': self.learning_rate,
         }
+
         optimizer = torch.optim.Adam(**args_dict)
         return optimizer
     
 
     def make_sam_optimizer(self,):
-        args_dict = {
-            'params': self.model.parameters(),
-            'lr': self.learning_rate,
-        }
-
         base_optimizer = torch.optim.SGD
-        if self.sam_name == 'FSAM':
+        if self.SAM_name == 'FSAM':
             optimizer = FSAM(
                 self.model.parameters(),
                 base_optimizer, device=self.device,
-                lr=self.learning_rate, rho=self.rho,
-                sigma=self.sigma, lmbda=self.lmbda,
-                adaptive=self.adaptive
+                lr=self.learning_rate,
+                sigma=self.sigma, lmbda=self.lmbda
                 )
-        elif self.sam_name == 'TRAM':
+        elif self.SAM_name == 'TRAM':
             optimizer = TRAM(
-                    self.model.parameters(),
-                    base_optimizer, device=self.device,
-                    lr=self.learning_rate,
-                    sigma=self.sigma, lmbda=self.lmbda)
+                self.model.parameters(),
+                base_optimizer, device=self.device,
+                lr=self.learning_rate,
+                sigma=self.sigma, lmbda=self.lmbda
+                )
         else:
-            optimizer = torch.optim.Adam(**args_dict)
-
+            print("WRONG!!")
         return optimizer
-
 
     def make_lr_scheduler(self, optimizer):
         if self.lr_scheduler == "StepLR":
@@ -83,7 +85,11 @@ class BasicTrainer:
     def fit_transform(self, dataset_handler, num_top_words=15, verbose=False):
         self.train(dataset_handler, verbose)
         top_words = self.export_top_words(dataset_handler.vocab, num_top_words)
-        train_theta = self.test(dataset_handler.train_data)
+    
+        if self.model_name == 'FASTopic':
+            train_theta = self.test(dataset_handler.train_contextual_embed, dataset_handler.train_contextual_embed)
+        else:
+            train_theta = self.test(dataset_handler.train_data)
 
         return top_words, train_theta
 
@@ -98,86 +104,57 @@ class BasicTrainer:
             lr_scheduler = self.make_lr_scheduler(adam_optimizer)
 
         data_size = len(dataset_handler.train_dataloader.dataset)
+        if self.use_SAM == 0:
+            print("Donot use SAM")
 
-        if self.use_sam == 0:
-            print("Don't use SAM")
-
-        for epoch in tqdm(range(1, self.epochs + 1)):
+        for epoch_id, epoch in enumerate(tqdm(range(1, self.epochs + 1))):
             self.model.train()
             loss_rst_dict = defaultdict(float)
-            # if epoch > self.threshold: is_CTR = True      
+            # if epoch > self.threshold: is_CTR = True
             # else: is_CTR = False
 
-            # for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
-            for batch_idx, batch in enumerate(dataset_handler.train_dataloader): 
+            for batch_id, batch in enumerate(dataset_handler.train_dataloader): 
                 *inputs, indices = batch
                 batch_data = inputs
-
+                # rst_dict = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss']
                 batch_loss.backward()
 
-                if self.use_sam == 0:
+                # batch_data_tensor = torch.tensor(batch_data, dtype=torch.float32)
+                # theta = self.model.get_theta(batch_data_tensor)
+
+                if self.use_SAM == 0:
                     adam_optimizer.step()
                     adam_optimizer.zero_grad()
-                
                 else:
-
-                    if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
-                        # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
-                        # theta, _, a = self.model.get_theta(batch_data[0])
-                        if (self.sam_name == 'FSAM' and self.model_name == 'NeuroMax'):
-                            sam_optimizer.first_step(zero_grad=True)
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
-                            sam_optimizer.second_step(zero_grad=True)
+                    #if (batch_id + 1) % accumulation_steps == 0 or (batch_id + 1) == len(dataset_handler.train_dataloader):
+                    if epoch_id > self.epoch_threshold:
+                        #theta, _ = self.model.encode(batch_data[0].to('cuda'))
+                        #loss_ctr_ = self.model.get_loss_CTR(theta, indices)
                         
-                        elif (self.sam_name == 'FSAM') and (self.model_name == 'ETM'):
-                            sam_optimizer.first_step(zero_grad=True)
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
-                            sam_optimizer.second_step(zero_grad=True)
-                        
-                        elif (self.sam_name == 'TRAM') and (self.model_name == 'ETM'):
-                            # theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
+                        if self.SAM_name == 'TRAM':
+                            self.model.is_CTR = False
                             loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
                                                     zero_grad=True)
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
+                        else:
+                            sam_optimizer.first_step(zero_grad=True)
 
-                            sam_optimizer.second_step(zero_grad=True)
-                        
-                        elif (self.sam_name == 'TRAM') and (self.model_name == 'ECRTM'):
-                            theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
-                            loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                            sam_optimizer.first_step(loss_ctr_,
-                                                    zero_grad=True)
-                            rst_dict_adv = self.model(batch_data)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
+                        # rst_dict_adv = self.model(indices, is_CTR, batch_data, epoch_id=epoch)
+                        rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
 
-                            sam_optimizer.second_step(zero_grad=True)
-                        
-                        elif (self.sam_name == 'TRAM' and self.model_name == 'NeuroMax'):
-                            # theta, _ = self.model.encode(batch_data[0].to('cuda'))
-                            # loss_ctr_ = self.model.get_loss_CTR(theta, indices)
-                            loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
-                            sam_optimizer.first_step(loss_ctr_,
-                                                zero_grad=True)
-                            
-                            rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                            batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
-                            batch_loss_adv.backward()
-                            sam_optimizer.second_step(zero_grad=True)
-                        
+                        batch_loss_adv = rst_dict_adv['loss'] / accumulation_steps
+                        batch_loss_adv.backward()
 
+                        sam_optimizer.second_step(zero_grad=True)
+                    
                     else:
+                        if self.SAM_name == 'TRAM':
+                            self.model.is_CTR = True
                         adam_optimizer.step()
                         adam_optimizer.zero_grad()
+                    
 
                 for key in rst_dict:
                     try:
@@ -195,10 +172,11 @@ class BasicTrainer:
                 for key in loss_rst_dict:
                     output_log += f' {key}: {loss_rst_dict[key] / data_size :.3f}'
 
-                print(output_log)
+                #print(output_log)
                 self.logger.info(output_log)
+
         # Vẽ loss landscape sau khi huấn luyện
-        self.plot_loss_landscape(dataset_handler)   
+        self.plot_loss_landscape(dataset_handler)  
 
     def plot_loss_landscape(self, dataset_handler, num_points=100):
         # Bước 1: Lưu trọng số ban đầu
@@ -236,12 +214,10 @@ class BasicTrainer:
         plt.ylabel('Perturbation 2')
         plt.grid()
         plt.show()
+ 
 
 
-
-
-
-    def test(self, input_data):
+    def test(self, input_data, train_data=None):
         data_size = input_data.shape[0]
         theta = list()
         all_idx = torch.split(torch.arange(data_size), self.batch_size)
@@ -250,7 +226,11 @@ class BasicTrainer:
             self.model.eval()
             for idx in all_idx:
                 batch_input = input_data[idx]
-                batch_theta = self.model.get_theta(batch_input)
+            
+                if self.model_name == 'FASTopic':
+                    batch_theta = self.model.get_theta(batch_input, train_data)
+                else:
+                    batch_theta = self.model.get_theta(batch_input)
                 theta.extend(batch_theta.cpu().tolist())
 
         theta = np.asarray(theta)
@@ -266,8 +246,12 @@ class BasicTrainer:
         return top_words
 
     def export_theta(self, dataset_handler):
-        train_theta = self.test(dataset_handler.train_data)
-        test_theta = self.test(dataset_handler.test_data)
+        if self.model_name == 'FASTopic':
+            train_theta = self.test(dataset_handler.train_contextual_embed, dataset_handler.train_contextual_embed)
+            test_theta = self.test(dataset_handler.test_contextual_embed, dataset_handler.train_contextual_embed)
+        else:
+            train_theta = self.test(dataset_handler.train_data)
+            test_theta = self.test(dataset_handler.test_data)
         return train_theta, test_theta
 
     def save_beta(self, dir_path):

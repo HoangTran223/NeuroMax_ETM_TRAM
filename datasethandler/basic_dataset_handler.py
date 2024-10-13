@@ -76,7 +76,7 @@ class BasicDatasetHandler:
 
         self.load_data(dataset_dir, read_labels)
         self.vocab_size = len(self.vocab)
-        
+
         print("===>train_size: ", self.train_bow.shape[0])
         print("===>test_size: ", self.test_bow.shape[0])
         print("===>vocab_size: ", self.vocab_size)
