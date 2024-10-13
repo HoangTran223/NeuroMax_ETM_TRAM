@@ -129,7 +129,7 @@ class BasicTrainer:
                     adam_optimizer.zero_grad()
                 else:
 
-                    if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_handler.train_dataloader):
+                    if (batch_id + 1) % accumulation_steps == 0 or (batch_id + 1) == len(dataset_handler.train_dataloader):
                         # theta, _ = self.model.get_theta(batch_data[0].to('cuda'))
                         # theta, _, a = self.model.get_theta(batch_data[0])
 
