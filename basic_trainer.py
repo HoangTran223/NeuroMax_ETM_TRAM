@@ -141,7 +141,7 @@ class BasicTrainer:
                             sam_optimizer.second_step(zero_grad=True)
                         
                         elif (self.SAM_name == 'TRAM') and (self.model_name == 'ETM'):
-                            self.model.is_CTR = False
+                            # self.model.is_CTR = False
                             # theta, _, a = self.model.get_theta(batch_data[0].to('cuda'))
                             loss_ctr_ = self.model.get_loss_CTR(batch_data, indices)
                             sam_optimizer.first_step(loss_ctr_,
@@ -174,8 +174,8 @@ class BasicTrainer:
                     #     sam_optimizer.second_step(zero_grad=True)
                     
                     else:
-                        if self.SAM_name == 'TRAM':
-                            self.model.is_CTR = True
+                        # if self.SAM_name == 'TRAM':
+                        #     self.model.is_CTR = True
                         adam_optimizer.step()
                         adam_optimizer.zero_grad()
                     
