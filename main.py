@@ -41,14 +41,14 @@ if __name__ == "__main__":
     #    cluster_label = [np.argmax(array[i]) for i in range(len(array))]
 
 
-    dataset = datasethandler.BasicDatasetHandler(
-        os.path.join(DATA_DIR, args.dataset), device=args.device, read_labels=read_labels,
-        as_tensor=True, contextual_embed=True)
-
-
     # dataset = datasethandler.BasicDatasetHandler(
     #     os.path.join(DATA_DIR, args.dataset), device=args.device, read_labels=read_labels,
-    #     as_tensor=True, batch_size=args.batch_size)
+    #     as_tensor=True, contextual_embed=True)
+
+
+    dataset = datasethandler.BasicDatasetHandler(
+        os.path.join(DATA_DIR, args.dataset), device=args.device, read_labels=read_labels,
+        as_tensor=True, batch_size=args.batch_size)
 
 
 
