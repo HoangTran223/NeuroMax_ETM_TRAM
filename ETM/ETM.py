@@ -105,13 +105,13 @@ class ETM(nn.Module):
         beta = self.get_beta()
         recon_input = torch.matmul(theta, beta)
 
-        if self.is_CTR:
-             loss_CTR = self.get_loss_CTR(input, indices)
-        else:
-             loss_CTR = 0.0
+        # if self.is_CTR:
+        #      loss_CTR = self.get_loss_CTR(input, indices)
+        # else:
+        #      loss_CTR = 0.0
 
         loss = self.loss_function(bow, recon_input, mu, logvar, avg_loss)
-        loss += loss_CTR
+        # loss += loss_CTR
 
         rst_dict = {
             'loss': loss,
