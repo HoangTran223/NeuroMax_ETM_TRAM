@@ -176,7 +176,7 @@ class BasicTrainer:
                 self.logger.info(output_log)
 
         # Vẽ loss landscape sau khi huấn luyện
-        self.plot_loss_landscape(dataset_handler)  
+        # self.plot_loss_landscape(dataset_handler)  
 
     def plot_loss_landscape(self, dataset_handler, num_points=100):
         # Bước 1: Lưu trọng số ban đầu
