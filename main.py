@@ -95,8 +95,7 @@ if __name__ == "__main__":
                         cluster_mean=cluster_mean,
                         cluster_label=cluster_label,
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        weight_CTR=args.weight_CTR,
-                        beta_temp=args.beta_temp)
+                        weight_CTR=args.weight_CTR)
         
         print(f"Wrong model")
     
