@@ -2,10 +2,10 @@ from utils import config, log, miscellaneous, seed
 import os
 import numpy as np
 import basic_trainer
-# from NeuroMax.NeuroMax import NeuroMax
+from NeuroMax.NeuroMax import NeuroMax
 from FASTopic.FASTopic import FASTopic
-# from ECRTM.ECRTM import ECRTM
-# from ETM.ETM import ETM
+from ECRTM.ECRTM import ECRTM
+from ETM.ETM import ETM
 import evaluations
 import datasethandler
 import scipy
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     # train the model
     trainer.train(dataset)
 
-    # trainer.plot_loss_landscape(dataset, num_points=100)
+    trainer.plot_loss_landscape(dataset, num_points=100)
 
     # save beta, theta and top words
     beta = trainer.save_beta(current_run_dir)

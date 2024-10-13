@@ -176,7 +176,7 @@ class BasicTrainer:
                 self.logger.info(output_log)
 
         # Vẽ loss landscape sau khi huấn luyện
-        # self.plot_loss_landscape(dataset_handler)  
+        self.plot_loss_landscape(dataset_handler)  
 
     def plot_loss_landscape(self, dataset_handler, num_points=100):
         # Bước 1: Lưu trọng số ban đầu
@@ -198,7 +198,7 @@ class BasicTrainer:
 
                     # Tính toán loss bằng cách sử dụng phương thức phù hợp trong mô hình
                     # Sử dụng cùng một phương thức như trong quá trình huấn luyện
-                    rst_dict = self.model(indices=None, batch_data=dataset_handler.train_data)  # hoặc phương thức nào mà bạn đã sử dụng để tính toán loss
+                    rst_dict = self.model(indices, batch_data, epoch_id=epoch) # hoặc phương thức nào mà bạn đã sử dụng để tính toán loss
                     loss_values[i, j] = rst_dict['loss'].item()
 
                     # Đặt lại trọng số về ban đầu
