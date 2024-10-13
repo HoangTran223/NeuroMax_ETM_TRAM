@@ -110,16 +110,16 @@ class ETM(nn.Module):
 
         loss = self.loss_function(bow, recon_input, mu, logvar, avg_loss)
 
-        if self.is_CTR:
-             loss_CTR = self.get_loss_CTR(input, indices)
-        else:
-             loss_CTR = 0.0
+        # if self.is_CTR:
+        #      loss_CTR = self.get_loss_CTR(input, indices)
+        # else:
+        #      loss_CTR = 0.0
 
-        loss += loss_CTR
+        # loss += loss_CTR
 
         rst_dict = {
             'loss': loss,
-            'loss_CTR': loss_CTR
+            #'loss_CTR': loss_CTR
         }
         return rst_dict
 
