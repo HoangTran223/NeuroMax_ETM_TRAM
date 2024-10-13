@@ -111,7 +111,7 @@ class ETM(nn.Module):
              loss_CTR = 0.0
 
         loss = self.loss_function(bow, recon_input, mu, logvar, avg_loss)
-        # loss += loss_CTR
+        loss += loss_CTR
 
         rst_dict = {
             'loss': loss,
