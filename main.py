@@ -122,7 +122,7 @@ if __name__ == "__main__":
     # train the model
     trainer.train(dataset)
 
-    # trainer.plot_loss_landscape(dataset, num_points=100)
+    trainer.plot_loss_landscape(dataset, num_points=100)
 
     # save beta, theta and top words
     beta = trainer.save_beta(current_run_dir)

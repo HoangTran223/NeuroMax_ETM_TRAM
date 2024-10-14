@@ -177,36 +177,43 @@ class BasicTrainer:
                 self.logger.info(output_log)
 
         # Vẽ loss landscape sau khi huấn luyện
-        # self.plot_loss_landscape(dataset_handler)  
+        self.plot_loss_landscape(dataset_handler)  
 
     def plot_loss_landscape(self, dataset_handler, num_points=100):
-        # Bước 1: Lưu trọng số ban đầu
+        # Get a sample batch (or pass it from the train method)
+        sample_batch = next(iter(dataset_handler.train_dataloader))
+        *batch_data, indices = sample_batch
+
+        # Ensure batch_data and indices are on the same device as the model
+        batch_data = [data.to(self.device) for data in batch_data]
+        indices = indices.to(self.device)
+
+        # Step 1: Save original weights
         original_params = [param.data.clone() for param in self.model.parameters()]
 
-        # Bước 2: Tạo các giá trị cho weight perturbation
+        # Step 2: Create perturbations
         perturbations = np.linspace(-1, 1, num_points)
         loss_values = np.zeros((num_points, num_points))
 
-        # Bước 3: Tính toán loss cho từng cặp perturbation
+        # Step 3: Compute loss for each pair of perturbations
         for i in range(num_points):
             for j in range(num_points):
-                # Tính toán perturbation
                 with torch.no_grad():
                     for k, param in enumerate(self.model.parameters()):
-                        # Tạo perturbation cho trọng số
-                        perturbation = perturbations[i] * torch.randn_like(param.data) + perturbations[j] * torch.randn_like(param.data)
+                        # Ensure perturbation happens on the same device (GPU)
+                        perturbation = (perturbations[i] * torch.randn_like(param.data).to(self.device)
+                                        + perturbations[j] * torch.randn_like(param.data).to(self.device))
                         param.data = original_params[k] + perturbation
 
-                    # Tính toán loss bằng cách sử dụng phương thức phù hợp trong mô hình
-                    # Sử dụng cùng một phương thức như trong quá trình huấn luyện
-                    rst_dict = self.model(indices, batch_data, epoch_id=epoch) # hoặc phương thức nào mà bạn đã sử dụng để tính toán loss
+                    # Compute loss using the same method as in training
+                    rst_dict = self.model(indices, batch_data, epoch_id=0)  # or proper epoch_id
                     loss_values[i, j] = rst_dict['loss'].item()
 
-                    # Đặt lại trọng số về ban đầu
+                    # Reset weights back to the original
                     for k, param in enumerate(self.model.parameters()):
-                        param.data = original_params[k]  # Quay lại trọng số ban đầu
+                        param.data = original_params[k]
 
-        # Bước 4: Vẽ loss landscape
+        # Step 4: Save the loss landscape plot
         plt.figure(figsize=(10, 8))
         plt.contourf(perturbations, perturbations, loss_values, levels=50, cmap='viridis')
         plt.colorbar(label='Loss')
@@ -214,7 +221,11 @@ class BasicTrainer:
         plt.xlabel('Perturbation 1')
         plt.ylabel('Perturbation 2')
         plt.grid()
-        plt.show()
+        
+        # Save plot instead of showing it, to avoid display issues on GPU servers
+        plt.savefig('loss_landscape.png')
+        print("Loss landscape plot saved as 'loss_landscape.png'")
+
  
 
 
