@@ -30,6 +30,13 @@ def add_model_argument(parser):
     parser.add_argument('--weight_CL', type=float, default=2.0)
     parser.add_argument('--beta_temp', type=float, default=0.2)
     parser.add_argument('--threshold', type=float, default=10)
+    parser = argparse.ArgumentParser(description="Convert HDF5 file to VTK XML format.")
+    parser.add_argument("surf_file", type=str, help="Path to the HDF5 file.")
+    parser.add_argument("--surf_name", type=str, default="train_loss", help="Dataset name in HDF5 file.")
+    parser.add_argument("--log", action='store_true', help="Apply log transformation to Z values.")
+    parser.add_argument("--zmax", type=float, default=-1, help="Max Z value to clip.")
+    parser.add_argument("--interp", type=int, default=-1, help="Resolution of interpolation.")
+    
 
 
 def add_training_argument(parser):

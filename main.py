@@ -10,6 +10,7 @@ import evaluations
 import datasethandler
 import scipy
 import torch
+import h52vtp
 
 RESULT_DIR = 'results'
 DATA_DIR = 'datasets'
@@ -20,6 +21,7 @@ if __name__ == "__main__":
     config.add_model_argument(parser)
     config.add_training_argument(parser)
     args = parser.parse_args()
+
 
     current_time = miscellaneous.get_current_datetime()
     current_run_dir = os.path.join(RESULT_DIR, current_time)
@@ -121,6 +123,11 @@ if __name__ == "__main__":
 
     # train the model
     trainer.train(dataset)
+
+
+    h5_to_vtp(args.surf_file, args.surf_name, log=args.log, zmax=args.zmax, interp=args.interp)
+
+
 
     # trainer.plot_loss_landscape(dataset, num_points=100)
 
