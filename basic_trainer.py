@@ -172,6 +172,7 @@ class BasicTrainer:
             if self.lr_scheduler:
                 lr_scheduler.step()
 
+            # loss_history = defaultdict(list)
             if verbose and epoch % self.log_interval == 0:
                 output_log = f'Epoch: {epoch:03d}'
                 for key in loss_rst_dict:
@@ -183,6 +184,11 @@ class BasicTrainer:
                 self.logger.info(output_log)
 
         with h5py.File('loss_landscape.h5', 'w') as f:
+            xcoordinates = np.arange(len(loss_history['loss']))
+            ycoordinates = np.arange(len(loss_history['loss']))
+            
+            f.create_dataset('xcoordinates', data=xcoordinates)
+            f.create_dataset('ycoordinates', data=ycoordinates)
             for key in loss_history:
                 f.create_dataset(key, data=loss_history[key])
 

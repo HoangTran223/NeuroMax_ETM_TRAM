@@ -35,23 +35,50 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
 
     f = h5py.File(surf_file,'r')
 
-    [xcoordinates, ycoordinates] = np.meshgrid(f['xcoordinates'][:], f['ycoordinates'][:][:])
-    vals = f[surf_name]
+    # [xcoordinates, ycoordinates] = np.meshgrid(f['xcoordinates'][:], f['ycoordinates'][:][:])
+    # vals = f[surf_name]
 
-    x_array = xcoordinates[:].ravel()
-    y_array = ycoordinates[:].ravel()
-    z_array = vals[:].ravel()
+    # x_array = xcoordinates[:].ravel()
+    # y_array = ycoordinates[:].ravel()
+    # z_array = vals[:].ravel()
 
-    # Interpolate the resolution up to the desired amount
+    # # Interpolate the resolution up to the desired amount
+    # if interp > 0:
+    #     m = interpolate.interp2d(xcoordinates[0,:], ycoordinates[:,0], vals, kind='cubic')
+    #     x_array = np.linspace(min(x_array), max(x_array), interp)
+    #     y_array = np.linspace(min(y_array), max(y_array), interp)
+    #     z_array = m(x_array, y_array).ravel()
+
+    #     x_array, y_array = np.meshgrid(x_array, y_array)
+    #     x_array = x_array.ravel()
+    #     y_array = y_array.ravel()
+
+    xcoordinates = f['xcoordinates'][:]
+    ycoordinates = f['ycoordinates'][:]
+    x_array = xcoordinates.ravel()
+    y_array = ycoordinates.ravel()
+    z_array = f['loss'][:].ravel()
+
     if interp > 0:
-        m = interpolate.interp2d(xcoordinates[0,:], ycoordinates[:,0], vals, kind='cubic')
-        x_array = np.linspace(min(x_array), max(x_array), interp)
-        y_array = np.linspace(min(y_array), max(y_array), interp)
-        z_array = m(x_array, y_array).ravel()
+        # Sử dụng interp2d để nội suy dựa trên lưới x và y
+        m = interpolate.interp2d(xcoordinates, ycoordinates, f['loss'][:], kind='cubic')
 
-        x_array, y_array = np.meshgrid(x_array, y_array)
-        x_array = x_array.ravel()
-        y_array = y_array.ravel()
+        # Nội suy tọa độ x và y với độ phân giải mới
+        x_array_interp = np.linspace(min(x_array), max(x_array), interp)
+        y_array_interp = np.linspace(min(y_array), max(y_array), interp)
+
+        # Nội suy các giá trị z (loss)
+        z_array_interp = m(x_array_interp, y_array_interp).ravel()
+
+        # Tạo lại lưới từ tọa độ nội suy
+        x_array_interp, y_array_interp = np.meshgrid(x_array_interp, y_array_interp)
+        
+        # Flatten lại lưới tọa độ
+        x_array = x_array_interp.ravel()
+        y_array = y_array_interp.ravel()
+        z_array = z_array_interp
+
+
 
     vtp_file = surf_file + "_" + surf_name
     if zmax > 0:
