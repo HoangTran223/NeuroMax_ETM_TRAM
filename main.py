@@ -11,6 +11,8 @@ import datasethandler
 import scipy
 import torch
 import h52vtp
+from h52vtp import h5_to_vtp
+
 
 RESULT_DIR = 'results'
 DATA_DIR = 'datasets'
