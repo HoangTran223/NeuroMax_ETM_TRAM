@@ -30,13 +30,13 @@ def add_model_argument(parser):
     parser.add_argument('--weight_CL', type=float, default=2.0)
     parser.add_argument('--beta_temp', type=float, default=0.2)
     parser.add_argument('--threshold', type=float, default=10)
-    parser = argparse.ArgumentParser(description="Convert HDF5 file to VTK XML format.")
-    parser.add_argument("surf_file", type=str, help="Path to the HDF5 file.")
-    parser.add_argument("--surf_name", type=str, default="train_loss", help="Dataset name in HDF5 file.")
-    parser.add_argument("--log", action='store_true', help="Apply log transformation to Z values.")
-    parser.add_argument("--zmax", type=float, default=-1, help="Max Z value to clip.")
-    parser.add_argument("--interp", type=int, default=-1, help="Resolution of interpolation.")
     
+    parser.add_argument('--surf_file', '-f', default='', help='The h5 file that contains surface values')
+    parser.add_argument('--surf_name', default='train_loss',
+		help='The type of surface to plot: train_loss | test_loss | train_acc | test_acc ')
+    parser.add_argument('--zmax', default=-1, type=float, help='Maximum z value to map')
+    parser.add_argument('--interp', default=-1, type=int, help='Interpolate the surface to this resolution (1000 recommended)')
+    parser.add_argument('--log', action='store_true', default=False, help='log scale')
 
 
 def add_training_argument(parser):
