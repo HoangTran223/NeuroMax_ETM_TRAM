@@ -10,6 +10,8 @@ import scipy
 import matplotlib.pyplot as plt
 from SAM_function.TRAM import TRAM
 from SAM_function.FSAM import FSAM
+import h5py
+from collections import defaultdict
 
 class BasicTrainer:
     def __init__(self, model, epoch_threshold = 150, model_name='NeuroMax', use_SAM=1, SAM_name='TRAM', epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5, 
@@ -107,6 +109,8 @@ class BasicTrainer:
         if self.use_SAM == 0:
             print("Donot use SAM")
 
+        loss_history = defaultdict(list)
+
         for epoch_id, epoch in enumerate(tqdm(range(1, self.epochs + 1))):
             self.model.train()
             loss_rst_dict = defaultdict(float)
@@ -171,62 +175,21 @@ class BasicTrainer:
             if verbose and epoch % self.log_interval == 0:
                 output_log = f'Epoch: {epoch:03d}'
                 for key in loss_rst_dict:
+                    loss_value = loss_rst_dict[key] / data_size
                     output_log += f' {key}: {loss_rst_dict[key] / data_size :.3f}'
+                    loss_history[key].append(loss_value)
 
                 #print(output_log)
                 self.logger.info(output_log)
 
+        with h5py.File('loss_landscape.h5', 'w') as f:
+            for key in loss_history:
+                f.create_dataset(key, data=loss_history[key])
+
         # Vẽ loss landscape sau khi huấn luyện
-        self.plot_loss_landscape(dataset_handler)  
+        # self.plot_loss_landscape(dataset_handler)  
 
-    def plot_loss_landscape(self, dataset_handler, num_points=100):
-        # Get a sample batch (or pass it from the train method)
-        sample_batch = next(iter(dataset_handler.train_dataloader))
-        *batch_data, indices = sample_batch
 
-        # Ensure batch_data and indices are on the same device as the model
-        batch_data = [data.to(self.device) for data in batch_data]
-        indices = indices.to(self.device)
-
-        # Step 1: Save original weights
-        original_params = [param.data.clone() for param in self.model.parameters()]
-
-        # Step 2: Create perturbations
-        perturbations = np.linspace(-1, 1, num_points)
-        loss_values = np.zeros((num_points, num_points))
-
-        # Step 3: Compute loss for each pair of perturbations
-        for i in range(num_points):
-            for j in range(num_points):
-                with torch.no_grad():
-                    for k, param in enumerate(self.model.parameters()):
-                        # Ensure perturbation happens on the same device (GPU)
-                        perturbation = (perturbations[i] * torch.randn_like(param.data).to(self.device)
-                                        + perturbations[j] * torch.randn_like(param.data).to(self.device))
-                        param.data = original_params[k] + perturbation
-
-                    # Compute loss using the same method as in training
-                    rst_dict = self.model(indices, batch_data, epoch_id=0)  # or proper epoch_id
-                    loss_values[i, j] = rst_dict['loss'].item()
-
-                    # Reset weights back to the original
-                    for k, param in enumerate(self.model.parameters()):
-                        param.data = original_params[k]
-
-        # Step 4: Save the loss landscape plot
-        plt.figure(figsize=(10, 8))
-        plt.contourf(perturbations, perturbations, loss_values, levels=50, cmap='viridis')
-        plt.colorbar(label='Loss')
-        plt.title('Loss Landscape')
-        plt.xlabel('Perturbation 1')
-        plt.ylabel('Perturbation 2')
-        plt.grid()
-        
-        # Save plot instead of showing it, to avoid display issues on GPU servers
-        plt.savefig('loss_landscape.png')
-        print("Loss landscape plot saved as 'loss_landscape.png'")
-
- 
 
 
     def test(self, input_data, train_data=None):
@@ -316,3 +279,54 @@ class BasicTrainer:
             np.save(os.path.join(dir_path, 'group_dist.npy'), group_dist)
 
         return word_embeddings, topic_embeddings
+
+
+
+    # def plot_loss_landscape(self, dataset_handler, num_points=100):
+    #     # Get a sample batch (or pass it from the train method)
+    #     sample_batch = next(iter(dataset_handler.train_dataloader))
+    #     *batch_data, indices = sample_batch
+
+    #     # Ensure batch_data and indices are on the same device as the model
+    #     batch_data = [data.to(self.device) for data in batch_data]
+    #     indices = indices.to(self.device)
+
+    #     # Step 1: Save original weights
+    #     original_params = [param.data.clone() for param in self.model.parameters()]
+
+    #     # Step 2: Create perturbations
+    #     perturbations = np.linspace(-1, 1, num_points)
+    #     loss_values = np.zeros((num_points, num_points))
+
+    #     # Step 3: Compute loss for each pair of perturbations
+    #     for i in range(num_points):
+    #         for j in range(num_points):
+    #             with torch.no_grad():
+    #                 for k, param in enumerate(self.model.parameters()):
+    #                     # Ensure perturbation happens on the same device (GPU)
+    #                     perturbation = (perturbations[i] * torch.randn_like(param.data).to(self.device)
+    #                                     + perturbations[j] * torch.randn_like(param.data).to(self.device))
+    #                     param.data = original_params[k] + perturbation
+
+    #                 # Compute loss using the same method as in training
+    #                 rst_dict = self.model(indices, batch_data, epoch_id=0)  # or proper epoch_id
+    #                 loss_values[i, j] = rst_dict['loss'].item()
+
+    #                 # Reset weights back to the original
+    #                 for k, param in enumerate(self.model.parameters()):
+    #                     param.data = original_params[k]
+
+    #     # Step 4: Save the loss landscape plot
+    #     plt.figure(figsize=(10, 8))
+    #     plt.contourf(perturbations, perturbations, loss_values, levels=50, cmap='viridis')
+    #     plt.colorbar(label='Loss')
+    #     plt.title('Loss Landscape')
+    #     plt.xlabel('Perturbation 1')
+    #     plt.ylabel('Perturbation 2')
+    #     plt.grid()
+        
+    #     # Save plot instead of showing it, to avoid display issues on GPU servers
+    #     plt.savefig('loss_landscape.png')
+    #     print("Loss landscape plot saved as 'loss_landscape.png'")
+
+ 
