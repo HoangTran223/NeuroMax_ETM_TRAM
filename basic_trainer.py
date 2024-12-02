@@ -168,12 +168,18 @@ class BasicTrainer:
                         ##
                         batch_loss.backward()
                         sam_optimizer.first_step(zero_grad=True)
-                        outputs_adv = self.model(inputs)  
-                        loss_sam = loss_fn(outputs_adv, targets)
+
+                        rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                        loss_sam = rst_dict_adv['loss']
+                        rst_dict['loss_sam'] = loss_sam
+
+                        if epoch_id % 10 == 0:
+                            print(f"Loss_sam: {loss_sam}")
+                            print(f"loss_total; {rst_dict['loss']}")
+                        
                         ##
 
-                        loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
-                        loss_array.append(loss_sam)
+                        loss_array = [value for key, value in rst_dict.items()]
 
                         grad_array = [grad_decomposer._get_total_grad(loss_) for loss_ in loss_array]
 

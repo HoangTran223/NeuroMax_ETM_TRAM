@@ -75,11 +75,11 @@ class FSAM(torch.optim.Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
-    def step(self, closure=None):
-        closure = torch.enable_grad()(closure)  
-        self.first_step(zero_grad=True)        
-        closure()
-        self.second_step()
+    # def step(self, closure=None):
+    #     closure = torch.enable_grad()(closure)  
+    #     self.first_step(zero_grad=True)        
+    #     closure()
+    #     self.second_step()
 
     def load_state_dict(self, state_dict):
         super().load_state_dict(state_dict)
