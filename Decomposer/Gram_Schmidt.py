@@ -31,7 +31,8 @@ class Gram_Schmidt:
         for p in self.model.parameters():
             if p.requires_grad:
                 if p.grad is not None:
-                    total_grad_list.append(p.grad.flatten())
+                    # total_grad_list.append(p.grad.flatten())
+                    total_grad_list.append(p.grad.flatten().clone())
                 else:
                     # Append zeros if p.grad is None
                     total_grad_list.append(torch.zeros_like(p).flatten())
