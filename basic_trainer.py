@@ -138,6 +138,7 @@ class BasicTrainer:
                 moo_algorithm = FairGrad()
             elif self.MOO_name == 'MoCo':
                 moo_algorithm = MoCo()
+                
         adam_optimizer = self.make_adam_optimizer()
         sam_optimizer = self.make_sam_optimizer() 
 
@@ -163,6 +164,14 @@ class BasicTrainer:
 
                 if self.use_SAM == 0:
                     if self.use_MOO == 1:
+                        
+                        ##
+                        batch_loss.backward()
+                        sam_optimizer.first_step(zero_grad=True)
+                        outputs_adv = self.model(inputs)  
+                        loss_sam = loss_fn(outputs_adv, targets)
+                        rst_dict['loss_sam'] = loss_sam
+                        ##
 
                         loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
                         grad_array = [grad_decomposer._get_total_grad(loss_) for loss_ in loss_array]
@@ -199,9 +208,7 @@ class BasicTrainer:
 
                     # adam_optimizer.step()
                     # adam_optimizer.zero_grad()
-                    batch_loss.backward()
-                    sam_optimizer.first_step(zero_grad=True)
-                    
+
                     batch_loss_adv = rst_dict_adv['loss_']
                     batch_loss_adv.backward()
                     sam_optimizer.second_step(zero_grad=True)
