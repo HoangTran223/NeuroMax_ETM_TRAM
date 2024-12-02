@@ -166,7 +166,7 @@ class BasicTrainer:
                     if self.use_MOO == 1:
                         
                         ##
-                        batch_loss.backward()
+                        batch_loss.backward(retain_graph=True)
                         sam_optimizer.first_step(zero_grad=True)
 
                         rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
