@@ -147,142 +147,67 @@ class BasicTrainer:
             lr_scheduler = self.make_lr_scheduler(adam_optimizer)
 
         data_size = len(dataset_handler.train_dataloader.dataset)
-        if self.use_SAM == 0:
-            print("Donot use SAM")
+        if self.use_SAM == 1:
+            print("use SAM")
 
-        num_task = 0
-        start_time = time.time()
-        Loss_warehouse_t_2 = []
-        Loss_warehouse_t_1 = []
-        Loss_warehouse = []
-        T_ = 2
-        itee = 0
         print(f"Learn = {self.learn}")
         for epoch_id, epoch in enumerate(tqdm(range(1, self.epochs + 1))):
             self.model.train()
             loss_rst_dict = defaultdict(float)
-            # if epoch > self.threshold: is_CTR = True
-            # else: is_CTR = False
 
             for batch_id, batch in enumerate(dataset_handler.train_dataloader): 
-                itee += 1
-                # if epoch == self.epoch_threshold:
-                #     endphase1_time = time.time()
                 *inputs, indices = batch
                 batch_data = inputs
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss_']
-                if self.learn == 1:
-                    loss_array2 = [value.item() for key, value in rst_dict.items() if 'losss' in key]
-                    Loss_warehouse_t_2 = Loss_warehouse_t_1
-                    Loss_warehouse_t_1 = Loss_warehouse
 
-                    if len(Loss_warehouse) == 0:
-                        Loss_warehouse = loss_array2
-                    else:
-                        Loss_warehouse = loss_array2
-                        #Loss_warehouse = np.add(np.multiply(Loss_warehouse, itee - 1), loss_array2) / itee
-                    if itee >= 3:
-                        w_t_1 = np.divide(Loss_warehouse_t_2, np.multiply(T_, Loss_warehouse_t_1) + 1e-8)
-                        e_w_t_1 = np.exp(w_t_1 - np.max(w_t_1)) 
-                        lambda_t = len(loss_array2) * e_w_t_1 / np.sum(e_w_t_1)  
-                        # if (epoch % 10 == 0) and (batch_id == 0):
-                        #     print(f"ite {itee}: {lambda_t}")
-
-                        if self.model_name in ["ECRTM", "NeuroMax"]:
-                            self.model.lambda_1, self.model.lambda_2, self.model.lambda_3 = lambda_t[:3]
-                            if self.model_name == "NeuroMax":
-                                self.model.lambda_4 = lambda_t[3]
-
-                #loss_array = [value for key, value in rst_dict.items() if 'loss_' not in key and value.requires_grad]
-                #loss_values = [value.item() for value in loss_array]
-                #num_task = len(loss_values)
-                #self.loss_out += loss_values
-                #self.loss_out += 0
-                # if (epoch % 10 == 0) and (batch_id == 0):
-                #     loss_values = [value.item() for value in loss_array]
-                #     print(f"Loss array = {loss_values}")
                 if self.use_SAM == 0:
-                    if epoch > self.epoch_threshold:
-                        if self.use_MOO == 1:
-                            # loss_array2 = [value for key, value in rst_dict.items() if 'loss_' not in key]
-                            loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
-                            # if (epoch % 10 == 0) and (batch_id == 0):
-                            #     loss_values = [value.item() for value in loss_array2]
-                            #     print(f"Loss array = {loss_values}")
-                            grad_array = [grad_decomposer._get_total_grad(loss_) for loss_ in loss_array]
-                            if self.MOO_name == 'MoCo':
-                                adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
-                            else:
-                                adjusted_grad, alpha = moo_algorithm.apply(grad_array)
-                            '''if self.use_MOO:
-                                adjusted_grad, alpha = moo_algorithm.apply(grad_array)
-                            else:
-                                total_grad = torch.stack(grad_array, dim=0)  # Shape: (N, x)
-                                grad_decomposer.update_grad_buffer(total_grad)
-                                components = grad_decomposer.decompose_grad(total_grad)
-                                adjusted_grad = sum(components)'''
-                            
-                            grad_pointer = 0
-                            for p in self.model.parameters():
-                                if p.requires_grad:
-                                    num_params = p.numel()
-                                    grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
-                                    p.grad = grad_slice.view_as(p).clone()
-                                    grad_pointer += num_params
-                        elif self.use_MOO == 2:
-                            if self.model_name == 'FASTopic':
-                                print("WRONG config: FASTopic cannot support for traditional MOO !!")
-                                break
-                            # Collect losses excluding the total 'loss'
-                            # loss_array = [value for key, value in rst_dict.items() if 'loss_' not in key and value.requires_grad]
-                            # if (epoch % 10 == 0) and (batch_id == 0):
-                            #     loss_values = [value.item() for value in loss_array]
-                            #     print(f"Loss array = {loss_values}")
-                            loss_array = [value for key, value in rst_dict.items() if 'loss_' not in key and value.requires_grad]
-                            if (epoch % 10 == 0) and (batch_id == 0):
-                                rr = 1
-                                #loss_values = [value.item() for value in loss_array]
-                                #print(f"Loss array = {loss_values}")
-                            grad_array = []
-                            for loss_ in loss_array:
-                                grads = torch.autograd.grad(loss_, self.model.encoder1.parameters(), retain_graph=True, allow_unused=True)
-                                valid_grads = [g for g in grads if g is not None]
-                                if len(valid_grads) > 0:
-                                    grad_vector = torch.cat([g.contiguous().view(-1) for g in valid_grads])
-                                    grad_array.append(grad_vector)
+                    if self.use_MOO == 1:
 
-                            if grad_array:
-                                if self.MOO_name == 'MoCo':
-                                    adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
-                                else:
-                                    adjusted_grad, alpha = moo_algorithm.apply(grad_array)
+                        loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
+                        grad_array = [grad_decomposer._get_total_grad(loss_) for loss_ in loss_array]
 
-                                start_idx = 0
-                                for param in self.model.encoder1.parameters():
-                                    param_size = param.numel()
-                                    param_grad = adjusted_grad[start_idx:start_idx + param_size].view_as(param)
-                                    param.grad = param_grad.clone()
-                                    start_idx += param_size
+                        if self.MOO_name == 'MoCo':
+                            adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
+                        else:
+                            adjusted_grad, alpha = moo_algorithm.apply(grad_array)
+                        '''if self.use_MOO:
+                            adjusted_grad, alpha = moo_algorithm.apply(grad_array)
+                        else:
+                            total_grad = torch.stack(grad_array, dim=0)  # Shape: (N, x)
+                            grad_decomposer.update_grad_buffer(total_grad)
+                            components = grad_decomposer.decompose_grad(total_grad)
+                            adjusted_grad = sum(components)'''
+                        
+                        grad_pointer = 0
+                        for p in self.model.parameters():
+                            if p.requires_grad:
+                                num_params = p.numel()
+                                grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
+                                p.grad = grad_slice.view_as(p).clone()
+                                grad_pointer += num_params
 
-                            encoder_params = list(self.model.encoder1.parameters())
-                            encoder_param_ids = set(id(p) for p in encoder_params)
+                        encoder_params = list(self.model.encoder1.parameters())
+                        encoder_param_ids = set(id(p) for p in encoder_params)
+                        
+                        other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
+                        if other_params:
+                            grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
+                            for param, grad in zip(other_params, grads):
+                                if grad is not None:
+                                    param.grad = grad.clone()
 
-                            #other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids]
-                            other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
-                            if other_params:
-                                grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
-                                for param, grad in zip(other_params, grads):
-                                    if grad is not None:
-                                        param.grad = grad.clone()
-                    else:
-                        # loss_array = [value for key, value in rst_dict.items() if 'loss_' not in key and value.requires_grad]
-                        #if (epoch % 10 == 0) and (batch_id == 0):
-                        #    loss_values = [value.item() for value in loss_array]
-                            #print(f"Loss array = {loss_values}")
-                        batch_loss.backward()
-                    adam_optimizer.step()
-                    adam_optimizer.zero_grad()
+                    # adam_optimizer.step()
+                    # adam_optimizer.zero_grad()
+                    batch_loss.backward()
+                    sam_optimizer.first_step(zero_grad=True)
+                    
+                    batch_loss_adv = rst_dict_adv['loss_']
+                    batch_loss_adv.backward()
+                    sam_optimizer.second_step(zero_grad=True)
+
+
+
                 else:
                     if epoch_id > self.epoch_threshold:
                         batch_loss.backward()
@@ -308,8 +233,6 @@ class BasicTrainer:
                         batch_loss.backward()
                         adam_optimizer.step()
                     
-
-
                 for key in rst_dict:
                     try:
                         loss_rst_dict[key] += rst_dict[key] * \
@@ -325,16 +248,7 @@ class BasicTrainer:
                 for key in loss_rst_dict:
                     output_log += f' {key}: {loss_rst_dict[key] / data_size :.3f}'
 
-                #print(output_log)
                 self.logger.info(output_log)
-        # endphase2_time = time.time()
-        # total_time = (endphase2_time - start_time) / self.epochs
-        # phase1_time = (endphase1_time - start_time) / self.epoch_threshold
-        # phase2_time = (endphase2_time - endphase1_time) / (self.epochs - self.epoch_threshold)
-        # print(f"Average time: {total_time:.5f}")
-        # print(f"Average phase 1 time: {phase1_time:.5f}")
-        # print(f"Average phase 2 time: {phase2_time:.5f}")
-        #self.loss_out = np.array(self.loss_out).reshape(-1, num_task).T
 
 
     def test(self, input_data, train_data=None):
