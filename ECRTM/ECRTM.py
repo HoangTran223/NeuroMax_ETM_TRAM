@@ -182,9 +182,8 @@ class ECRTM(nn.Module):
         if self.use_MOO == 1:
             rst_dict = {
                     'loss_': loss,
-                    'lossTM': loss_TM,
-                    'lossECR': loss_ECR,
-                    #'lossCTR': loss_CTR
+                    # 'lossTM': loss_TM,
+                    # 'lossECR': loss_ECR,
                 }
         return rst_dict
 
