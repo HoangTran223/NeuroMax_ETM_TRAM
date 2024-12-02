@@ -170,18 +170,17 @@ class BasicTrainer:
                         sam_optimizer.first_step(zero_grad=True)
 
                         rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
-                        loss_sam = rst_dict_adv['loss']
+                        loss_sam = rst_dict_adv['loss_']
                         rst_dict['loss_sam'] = loss_sam
-                        rst_dict['loss_hieu'] = loss_sam - loss
+                        rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
 
-                        if epoch_id % 10 == 0:
-                            print(f"Loss_sam: { rst_dict['loss_sam']}")
-                            print(f"loss_total; {rst_dict['loss']}")
-                            print(f"Hieu 2 loss: {rst_dict['loss_hieu']}")
+                        if batch_id % 100 == 0:  # Log mỗi 100 batch
+                            print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
+
                         
                         ##
 
-                        loss_array = [value for key, value in rst_dict.items()]
+                        loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
 
                         grad_array = [grad_decomposer._get_total_grad(loss_) for loss_ in loss_array]
 
@@ -218,8 +217,9 @@ class BasicTrainer:
                     # adam_optimizer.step()
                     # adam_optimizer.zero_grad()
 
-                    batch_loss_adv = rst_dict_adv['loss_']
-                    batch_loss_adv.backward()
+                    # batch_loss_adv = rst_dict_adv['loss_']
+                    total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                    total_loss.backward()
                     sam_optimizer.second_step(zero_grad=True)
 
 
