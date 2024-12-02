@@ -25,9 +25,8 @@ class Gram_Schmidt:
     
     def _get_total_grad(self, total_loss):
         self.model.zero_grad()
-        retain_graph_flag = True if len(loss_array) > 1 else False
         # total_loss.backward(retain_graph=True)
-        total_loss.backward(retain_graph=retain_graph_flag)
+        total_loss.backward(retain_graph=True)
         total_grad_list = []
         for p in self.model.parameters():
             if p.requires_grad:
