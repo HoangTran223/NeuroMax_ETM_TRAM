@@ -182,19 +182,12 @@ class BasicTrainer:
 
                         loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
 
-                        grad_array = [grad_decomposer._get_total_grad(loss) for loss in loss_array]
+                        grad_array = [grad_decomposer._get_total_grad(loss, retain_graph_flag=True) for loss in loss_array]
 
                         if self.MOO_name == 'MoCo':
                             adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
                         else:
                             adjusted_grad, alpha = moo_algorithm.apply(grad_array)
-                        '''if self.use_MOO:
-                            adjusted_grad, alpha = moo_algorithm.apply(grad_array)
-                        else:
-                            total_grad = torch.stack(grad_array, dim=0)  # Shape: (N, x)
-                            grad_decomposer.update_grad_buffer(total_grad)
-                            components = grad_decomposer.decompose_grad(total_grad)
-                            adjusted_grad = sum(components)'''
                         
                         grad_pointer = 0
                         for p in self.model.parameters():
@@ -219,7 +212,7 @@ class BasicTrainer:
 
                     # batch_loss_adv = rst_dict_adv['loss_']
                     total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
-                    total_loss.backward()
+                    total_loss.backward(retain_graph = True)
                     sam_optimizer.second_step(zero_grad=True)
 
 

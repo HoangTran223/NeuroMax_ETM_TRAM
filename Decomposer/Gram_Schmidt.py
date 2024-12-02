@@ -23,10 +23,10 @@ class Gram_Schmidt:
         total_grad = torch.cat([p.grad.flatten() for p in self.model.parameters() if p.grad is not None])
         return total_grad.detach()'''
     
-    def _get_total_grad(self, total_loss):
+    def _get_total_grad(self, total_loss, retain_graph_flag = False):
         self.model.zero_grad()
         # total_loss.backward(retain_graph=True)
-        total_loss.backward(retain_graph=True)
+        total_loss.backward(retain_graph=retain_graph_flag)
         total_grad_list = []
         for p in self.model.parameters():
             if p.requires_grad:
