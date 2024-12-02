@@ -172,10 +172,12 @@ class BasicTrainer:
                         rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
                         loss_sam = rst_dict_adv['loss']
                         rst_dict['loss_sam'] = loss_sam
+                        rst_dict['loss_hieu'] = loss_sam - loss
 
                         if epoch_id % 10 == 0:
-                            print(f"Loss_sam: {loss_sam}")
+                            print(f"Loss_sam: { rst_dict['loss_sam']}")
                             print(f"loss_total; {rst_dict['loss']}")
+                            print(f"Hieu 2 loss: {rst_dict['loss_hieu']}")
                         
                         ##
 

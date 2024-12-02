@@ -222,4 +222,3 @@ class ECRTM(nn.Module):
                     # 'lossECR': loss_ECR,
                 }
         return rst_dict
-
