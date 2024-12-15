@@ -230,7 +230,7 @@ class BasicTrainer:
                         
                         total_loss.backward()
 
-                    sam_optimizer.second_step(zero_grad=True)
+                        sam_optimizer.second_step(zero_grad=True)
 
 
 
