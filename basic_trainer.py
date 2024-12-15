@@ -185,32 +185,32 @@ class BasicTrainer:
                         
                         ##
 
-                        loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
+                        # loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
 
-                        grad_array = [grad_decomposer._get_total_grad(loss, retain_graph_flag=True) for loss in loss_array]
+                        # grad_array = [grad_decomposer._get_total_grad(loss, retain_graph_flag=True) for loss in loss_array]
 
-                        if self.MOO_name == 'MoCo':
-                            adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
-                        else:
-                            adjusted_grad, alpha = moo_algorithm.apply(grad_array)
+                        # if self.MOO_name == 'MoCo':
+                        #     adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
+                        # else:
+                        #     adjusted_grad, alpha = moo_algorithm.apply(grad_array)
                         
-                        grad_pointer = 0
-                        for p in self.model.parameters():
-                            if p.requires_grad:
-                                num_params = p.numel()
-                                grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
-                                p.grad = grad_slice.view_as(p).clone()
-                                grad_pointer += num_params
+                        # grad_pointer = 0
+                        # for p in self.model.parameters():
+                        #     if p.requires_grad:
+                        #         num_params = p.numel()
+                        #         grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
+                        #         p.grad = grad_slice.view_as(p).clone()
+                        #         grad_pointer += num_params
 
-                        encoder_params = list(self.model.encoder1.parameters())
-                        encoder_param_ids = set(id(p) for p in encoder_params)
+                        # encoder_params = list(self.model.encoder1.parameters())
+                        # encoder_param_ids = set(id(p) for p in encoder_params)
                         
-                        other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
-                        if other_params:
-                            grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
-                            for param, grad in zip(other_params, grads):
-                                if grad is not None:
-                                    param.grad = grad.clone()
+                        # other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
+                        # if other_params:
+                        #     grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
+                        #     for param, grad in zip(other_params, grads):
+                        #         if grad is not None:
+                        #             param.grad = grad.clone()
 
                     # adam_optimizer.step()
                     # adam_optimizer.zero_grad()
