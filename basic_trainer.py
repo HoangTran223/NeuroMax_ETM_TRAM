@@ -216,12 +216,12 @@ class BasicTrainer:
                         encoder_params = list(self.model.encoder1.parameters())
                         encoder_param_ids = set(id(p) for p in encoder_params)
                         
-                        other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
-                        if other_params:
-                            grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
-                            for param, grad in zip(other_params, grads):
-                                if grad is not None:
-                                    param.grad = grad.clone()
+                        # other_params = [param for param in self.model.parameters() if id(param) not in encoder_param_ids and param.requires_grad]
+                        # if other_params:
+                        #     grads = torch.autograd.grad(rst_dict['loss_'], other_params, allow_unused=True)
+                        #     for param, grad in zip(other_params, grads):
+                        #         if grad is not None:
+                        #             param.grad = grad.clone()
 
                     # adam_optimizer.step()
                     # adam_optimizer.zero_grad()
