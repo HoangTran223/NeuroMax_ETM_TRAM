@@ -167,13 +167,13 @@ class BasicTrainer:
                         
                         ##
                         #batch_loss.backward(retain_graph=True)
-                        batch_loss.backward()
-                        for p in self.model.parameters():
-                            if p.grad is not None:
-                                p.grad = p.grad.clone()
-                        ##
+                        # batch_loss.backward()
+                        # for p in self.model.parameters():
+                        #     if p.grad is not None:
+                        #         p.grad = p.grad.clone()
+                        # ##
 
-                        sam_optimizer.first_step(zero_grad=True)
+                        # sam_optimizer.first_step(zero_grad=True)
 
                         rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
                         loss_sam = rst_dict_adv['loss_']
@@ -186,6 +186,13 @@ class BasicTrainer:
                         
                         ##
                         total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                        for p in self.model.parameters():
+                            if p.grad is not None:
+                                p.grad = p.grad.clone()
+                        ##
+
+                        sam_optimizer.first_step(zero_grad=True)
+
 
                         loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
 
