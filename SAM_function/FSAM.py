@@ -39,8 +39,10 @@ class FSAM(torch.optim.Optimizer):
                 if "momentum" not in state:
                     state["momentum"] = grad 
                 else:
-                    p.grad.add_(state["momentum"], alpha=-self.sigma)
-                    state["momentum"].mul_(self.lmbda).add_(grad, alpha=1 - self.lmbda)  # In-place update momentum
+                    # p.grad.add_(state["momentum"], alpha=-self.sigma)
+                    new_momentum = state["momentum"].clone() * self.lmbda + grad * (1 - self.lmbda)
+                    state["momentum"] = new_momentum
+                    p.grad = p.grad - state["momentum"] * self.sigma
 
         grad_norm = self._grad_norm()
 
@@ -54,7 +56,7 @@ class FSAM(torch.optim.Optimizer):
                 state["old_p"] = p.data.clone() 
 
                 e_w = (torch.pow(p, 2) if  group["adaptive"] else 1.0) * p.grad * scale
-                p.add_(e_w) 
+                p.data = p.data + e_w
 
         if zero_grad: self.zero_grad()
     

@@ -167,6 +167,11 @@ class BasicTrainer:
                         
                         ##
                         batch_loss.backward(retain_graph=True)
+                        for p in self.model.parameters():
+                            if p.grad is not None:
+                                p.grad = p.grad.clone()
+                        ##
+
                         sam_optimizer.first_step(zero_grad=True)
 
                         rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
