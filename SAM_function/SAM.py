@@ -1,14 +1,20 @@
 ﻿import torch 
 
 class SAM(torch.optim.Optimizer):
-    
-    def __init__(self, params, base_optimizer, rho=0.05, adaptive=False, lr=0.002):
+
+    def __init__(self, params, base_optimizer, device, rho=0.05, adaptive=False, lr=0.002): #foreach=True
         defaults = dict(rho=rho, adaptive=adaptive, lr=lr)
         super(SAM, self).__init__(params, defaults)
 
-        self.base_optimizer = base_optimizer(self.param_groups)
+        # Thêm
+        self.rho = rho
+        self.device = device
+
+        self.base_optimizer = base_optimizer(self.param_groups)     
         self.param_groups = self.base_optimizer.param_groups
         self.defaults.update(self.base_optimizer.defaults)
+        print ('SAM:')
+    
 
     def _grad_norm(self):
         norm = torch.norm(
