@@ -37,7 +37,7 @@ class SAM(torch.optim.Optimizer):
                 e_w = (torch.pow(p, 2) if group["adaptive"] else 1.0) * p.grad * scale
                 
                 # Compute: w + e(w)
-                p.add_(e_w)                      
+                p.data = p.data + e_w                  
 
         if zero_grad: self.zero_grad()
 
@@ -48,7 +48,8 @@ class SAM(torch.optim.Optimizer):
                 if p.grad is None: continue
 
                 # Get back to w from w + e(w)
-                p.data = self.state[p]["old_p"] 
+                #p.data = self.state[p]["old_p"] 
+                p.data.copy_(self.state[p]["old_p"])
 
         # Update
         self.base_optimizer.step()               
