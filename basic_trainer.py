@@ -166,7 +166,8 @@ class BasicTrainer:
                     if self.use_MOO == 1:
                         
                         ##
-                        batch_loss.backward(retain_graph=True)
+                        #batch_loss.backward(retain_graph=True)
+                        batch_loss.backward()
                         for p in self.model.parameters():
                             if p.grad is not None:
                                 p.grad = p.grad.clone()
