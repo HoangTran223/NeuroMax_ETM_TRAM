@@ -174,7 +174,7 @@ class BasicTrainer:
                         rst_dict['loss_sam'] = loss_sam
                         rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
 
-                        if batch_id % 100 == 0:  # Log mỗi 100 batch
+                        if batch_id % 100 == 0:  
                             print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
 
                         
