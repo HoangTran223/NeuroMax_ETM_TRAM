@@ -216,13 +216,9 @@ class BasicTrainer:
                     # adam_optimizer.zero_grad()
 
                     # batch_loss_adv = rst_dict_adv['loss_']
-                    # total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
-                    # total_loss.backward(retain_graph = False)
+                        total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                        total_loss.backward(retain_graph = False)
 
-                        batch_loss.backward(retain_graph=True)
-                        loss_sam.backward(retain_graph=True)
-                        rst_dict['loss_hieu'].backward()
-                        
                     sam_optimizer.second_step(zero_grad=True)
 
 
