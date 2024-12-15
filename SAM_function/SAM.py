@@ -28,32 +28,61 @@ class SAM(torch.optim.Optimizer):
     @torch.no_grad()
     def first_step(self, zero_grad=False):
         grad_norm = self._grad_norm()
-        for group in self.param_groups:
-            scale = group["rho"] / (grad_norm + 1e-12)
+        # for group in self.param_groups:
+        #     scale = group["rho"] / (grad_norm + 1e-12)
 
-            for p in group["params"]:
-                if p.grad is None: continue
-                self.state[p]["old_p"] = p.data.clone()
-                e_w = (torch.pow(p, 2) if group["adaptive"] else 1.0) * p.grad * scale
+        #     for p in group["params"]:
+        #         if p.grad is None: continue
+        #         self.state[p]["old_p"] = p.data.clone()
+        #         e_w = (torch.pow(p, 2) if group["adaptive"] else 1.0) * p.grad * scale
                 
-                # Compute: w + e(w)
-                p.data = p.data + e_w                  
+        #         # Compute: w + e(w)
+        #         p.data = p.data + e_w
+        for group in self.param_groups:
+            scale = group["rho"] / (grad_norm + 1e-12)  
+            for p in group["params"]:
+                if p.grad is None: 
+                    continue
+
+                state = self.state[p]
+                state["old_p"] = p.data.clone() 
+
+                e_w = (torch.pow(p, 2) if  group["adaptive"] else 1.0) * p.grad * scale
+                p.data = p.data + e_w
+
+        if zero_grad: self.zero_grad()
+          
+                    
 
         if zero_grad: self.zero_grad()
 
+    # @torch.no_grad()
+    # def second_step(self, zero_grad=False):
+    #     for group in self.param_groups:
+    #         for p in group["params"]:
+    #             if p.grad is None: continue
+
+    #             # Get back to w from w + e(w)
+    #             #p.data = self.state[p]["old_p"] 
+    #             p.data.copy_(self.state[p]["old_p"])
+
+    #     # Update
+    #     self.base_optimizer.step()               
+    #     if zero_grad: self.zero_grad()
     @torch.no_grad()
     def second_step(self, zero_grad=False):
+        # Khôi phục 
         for group in self.param_groups:
             for p in group["params"]:
-                if p.grad is None: continue
+                if p.grad is None: 
+                    continue
 
-                # Get back to w from w + e(w)
-                #p.data = self.state[p]["old_p"] 
-                p.data.copy_(self.state[p]["old_p"])
+                p.data.copy_(self.state[p]["old_p"])  # Khôi phục trạng thái cũ
 
-        # Update
-        self.base_optimizer.step()               
-        if zero_grad: self.zero_grad()
+        self.base_optimizer.step()
+
+        if zero_grad:
+            self.zero_grad()
 
 
     @torch.no_grad()
