@@ -20,7 +20,7 @@ from MOO.MoCo import MoCo
 import numpy as np
 
 from SAM_function.TRAM import TRAM
-from SAM_function.FSAM import FSAM
+from SAM_function.SAM import SAM
 
 import time
 
@@ -78,12 +78,11 @@ class BasicTrainer:
 
     def make_sam_optimizer(self,):
         base_optimizer = torch.optim.SGD
-        if self.SAM_name == 'FSAM':
-            optimizer = FSAM(
+        if self.SAM_name == 'SAM':
+            optimizer = SAM(
                 self.model.parameters(),
                 base_optimizer, device=self.device,
-                lr=self.learning_rate,
-                sigma=self.sigma, lmbda=self.lmbda
+                lr=self.learning_rate
                 )
         elif self.SAM_name == 'TRAM':
             optimizer = TRAM(
@@ -190,7 +189,7 @@ class BasicTrainer:
                         for p in self.model.parameters():
                             if p.grad is not None:
                                 p.grad = p.grad.clone()
-                        ##
+                        #
 
                         sam_optimizer.first_step(zero_grad=True)
 
