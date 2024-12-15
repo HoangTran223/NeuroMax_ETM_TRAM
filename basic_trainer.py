@@ -186,6 +186,7 @@ class BasicTrainer:
                         
                         ##
                         total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                        batch_loss.backward()
                         for p in self.model.parameters():
                             if p.grad is not None:
                                 p.grad = p.grad.clone()
