@@ -189,7 +189,9 @@ class BasicTrainer:
 
                         loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
 
-                        grad_array = [grad_decomposer._get_total_grad(loss) for loss in loss_array]
+                        grad_array = []
+                        for loss in loss_array:
+                            grad_array.append(grad_decomposer._get_total_grad(loss))
 
                         if self.MOO_name == 'MoCo':
                             adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
