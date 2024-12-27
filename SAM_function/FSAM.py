@@ -69,19 +69,13 @@ class FSAM(torch.optim.Optimizer):
                 if p.grad is None: 
                     continue
 
-                p.data.copy_(self.state[p]["old_p"])  # Khôi phục trạng thái cũ
+                if "old_p" in self.state[p]:
+                    p.data.copy_(self.state[p]["old_p"])
 
         self.base_optimizer.step()
 
         if zero_grad:
             self.zero_grad()
-
-    @torch.no_grad()
-    # def step(self, closure=None):
-    #     closure = torch.enable_grad()(closure)  
-    #     self.first_step(zero_grad=True)        
-    #     closure()
-    #     self.second_step()
 
     def load_state_dict(self, state_dict):
         super().load_state_dict(state_dict)
