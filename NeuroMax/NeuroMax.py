@@ -308,51 +308,33 @@ class NeuroMax(nn.Module):
         #     'loss_InfoNCE': loss_InfoNCE,
         # }
         if self.use_MOO == 1:
-            if self.weight_loss_CTR == 0:
-                if self.learn_ == 0:
-                    rst_dict = {
-                        'loss_': loss,
-                        #'loss_CTR': loss_CTR,
-                        'loss_x1': loss_TM + self.coef_ * loss,
-                        'loss_x2': loss_ECR + self.coef_ * loss,
-                        'loss_x3': loss_GR + self.coef_ * loss,
-                        'loss_x4': loss_InfoNCE + self.coef_ * loss,
-                        'lossTM': loss_TM,
-                        'lossECR': loss_ECR,
-                        'lossGR': loss_GR,
-                        'lossInfoNCE': loss_InfoNCE,
-                    }
-                else:
-                    rst_dict = {
-                        'loss_': loss,
-                        #'loss_CTR': loss_CTR,
-                        'loss_x1': loss_TM + self.lambda_1 * loss,
-                        'loss_x2': loss_ECR + self.lambda_2 * loss,
-                        'loss_x3': loss_GR + self.lambda_3 * loss,
-                        'loss_x4': loss_InfoNCE + self.lambda_4 * loss,
-                        'losssTM': loss_TM,
-                        'losssECR': loss_ECR,
-                        'losssGR': loss_GR,
-                        'losssInfoNCE': loss_InfoNCE,
-                    }
-            else:
+            if self.learn_ == 0:
                 rst_dict = {
                     'loss_': loss,
-                    #'loss_CTR': loss_CTR,
-                    'loss_x1': loss_TM + loss_ECR + loss_GR + loss_InfoNCE + self.coef_ * loss_CTR,
-                    'loss_x2': loss_TM + loss_ECR + loss_GR + self.coef_ * loss_InfoNCE + loss_CTR,
-                    'loss_x3': loss_TM + loss_ECR + self.coef_ * loss_GR + loss_InfoNCE + loss_CTR,
-                    'loss_x4': loss_TM + self.coef_ * loss_ECR + loss_GR + loss_InfoNCE + loss_CTR,
-                    'loss_x5': self.coef_ * loss_TM + loss_ECR + loss_GR + loss_InfoNCE + loss_CTR,
+                    'loss_x1': loss_TM + self.coef_ * loss,
+                    'loss_x2': loss_ECR + self.coef_ * loss,
+                    'loss_x3': loss_GR + self.coef_ * loss,
+                    'loss_x4': loss_InfoNCE + self.coef_ * loss,
                     'lossTM': loss_TM,
                     'lossECR': loss_ECR,
                     'lossGR': loss_GR,
                     'lossInfoNCE': loss_InfoNCE,
                 }
+            else:
+                rst_dict = {
+                    'loss_': loss,
+                    'loss_x1': loss_TM + self.lambda_1 * loss,
+                    'loss_x2': loss_ECR + self.lambda_2 * loss,
+                    'loss_x3': loss_GR + self.lambda_3 * loss,
+                    'loss_x4': loss_InfoNCE + self.lambda_4 * loss,
+                    'losssTM': loss_TM,
+                    'losssECR': loss_ECR,
+                    'losssGR': loss_GR,
+                    'losssInfoNCE': loss_InfoNCE,
+                }
         else:
             rst_dict = {
                 'loss_': loss,
-                #'loss_CTR': loss_CTR,
                 'lossTM': loss_TM,
                 'lossECR': loss_ECR,
                 'lossGR': loss_GR,

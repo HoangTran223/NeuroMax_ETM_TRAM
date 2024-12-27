@@ -19,13 +19,9 @@ def add_model_argument(parser):
     parser.add_argument('--learn', type=int, default=0, help='the lambda hyperparameter learning in the training process or not')
 
     parser.add_argument('--task_num', type=int, help='number of tasks')
-    parser.add_argument('--use_decompose', type=int, help='use Decompose')
-    parser.add_argument('--decompose_name', type=str, help='Decompose Variant')
     parser.add_argument('--use_MOO', type=int, help='use MOO')
     parser.add_argument('--MOO_name', type=str, help='MOO Variant')
 
-    parser.add_argument('--use_SAM', type=int, help='use SAM')
-    parser.add_argument('--SAM_name', type=str, help='SAM Variant')
     parser.add_argument('--num_topics', type=int, default=50)
     parser.add_argument('--num_groups', type=int, default=20)
     parser.add_argument('--dropout', type=float, default=0.2)
@@ -39,11 +35,9 @@ def add_model_argument(parser):
     parser.add_argument('--weight_GR', type=float, default=1.)
     parser.add_argument('--alpha_ECR', type=float, default=20.)
     parser.add_argument('--alpha_GR', type=float, default=5.)
-    parser.add_argument('--weight_CTR', type=float, default=100.)
     parser.add_argument('--weight_InfoNCE', type=float, default=50.)
-    parser.add_argument('--weight_CL', type=float, default=2.0)
     parser.add_argument('--beta_temp', type=float, default=0.2)
-    parser.add_argument('--threshold', type=float, default=10)
+    parser.add_argument('--threshold', type=float, default=0)
 
 
 def add_training_argument(parser):

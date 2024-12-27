@@ -12,11 +12,8 @@ class PCGrad:
 
     def apply(self, components):
         task_num = len(components)
-        grads = components
-        #pc_grads = [comp.clone() for comp in components]
-        pc_grads = []
-        for comp in components:
-            pc_grads.append(comp.clone())
+        pc_grads = [comp.clone() for comp in components]
+        grads = components  
 
         batch_weight = torch.ones(task_num, device=components[0].device)
         
@@ -28,7 +25,7 @@ class PCGrad:
                     g_ij = torch.dot(pc_grads[tn_i], grads[tn_j])
                     if g_ij < 0:
                         adjustment = (g_ij / (grads[tn_j].norm().pow(2) + 1e-8)) * grads[tn_j]
-                        pc_grads[tn_i] = pc_grads[tn_i] - adjustment
+                        pc_grads[tn_i] -= adjustment
                         batch_weight[tn_j] -= (g_ij / (grads[tn_j].norm().pow(2) + 1e-8))
 
         adjusted_grad = torch.stack(pc_grads).sum(dim=0)

@@ -67,9 +67,7 @@ if __name__ == "__main__":
                         weight_loss_ECR=args.weight_ECR,
                         alpha_ECR=args.alpha_ECR,
                         alpha_GR=args.alpha_GR,
-                        weight_loss_CTR=args.weight_CTR,
                         weight_loss_InfoNCE=args.weight_InfoNCE,
-                        weight_loss_CL=args.weight_CL,
                         beta_temp=args.beta_temp,
                         coef_=args.coef_,
                         epoch_threshold = args.epoch_threshold,
@@ -85,7 +83,6 @@ if __name__ == "__main__":
                         theta_temp=args.theta_temp,
                         DT_alpha=args.DT_alpha,
                         TW_alpha=args.TW_alpha,
-                        weight_loss_CTR=args.weight_CTR,
                         coef_=args.coef_,
                         learn_=args.learn,
                         use_MOO=args.use_MOO)
@@ -99,7 +96,6 @@ if __name__ == "__main__":
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
                         weight_loss_ECR=args.weight_ECR,
                         alpha_ECR=args.alpha_ECR,
-                        weight_CTR=args.weight_CTR,
                         beta_temp=args.beta_temp,
                         coef_=args.coef_, init_2=args.init_2,
                         learn_=args.learn,
@@ -112,7 +108,6 @@ if __name__ == "__main__":
                         cluster_mean=cluster_mean,
                         cluster_label=cluster_label,
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        weight_CTR=args.weight_CTR,
                         coef_=args.coef_,
                         learn_=args.learn,
                         use_MOO=args.use_MOO
@@ -130,12 +125,9 @@ if __name__ == "__main__":
     trainer = basic_trainer.BasicTrainer(model, model_name=args.model,
                                             epoch_threshold = args.epoch_threshold,
                                             task_num = args.task_num,
-                                            use_decompose = args.use_decompose,
-                                            decompose_name=args.decompose_name,
                                             use_MOO = args.use_MOO,
                                             MOO_name=args.MOO_name,
-                                            use_SAM = args.use_SAM,
-                                            SAM_name=args.SAM_name, epochs=args.epochs,
+                                            epochs=args.epochs,
                                             learning_rate=args.lr,
                                             rho=args.rho,
                                             batch_size=args.batch_size,
@@ -188,7 +180,7 @@ if __name__ == "__main__":
         os.path.join(current_run_dir, 'top_words_15.txt'))
     print(f"TC_15: {TC_15:.5f}")
 
-    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_ECR{args.weight_ECR}_w_GR{args.weight_GR}_w_CTR{args.weight_CTR}_w_InfoNCE{args.weight_InfoNCE}_w_CL{args.weight_CL}.txt"
+    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_ECR{args.weight_ECR}_w_GR{args.weight_GR}_w_InfoNCE{args.weight_InfoNCE}.txt"
     filename = filename.replace(' ', '_')
     filepath = os.path.join(current_run_dir, filename)
     with open(filepath, 'w') as f:

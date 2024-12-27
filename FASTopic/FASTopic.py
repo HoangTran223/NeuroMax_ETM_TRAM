@@ -18,11 +18,16 @@ class FASTopic(nn.Module):
                  TW_alpha: float=2.0,
                  weight_loss_CTR=100.0, sinkhorn_alpha=20.0, sinkhorn_max_iter=1000,
                  coef_=0.5,
+                 learn_=0,
                  use_MOO=1,
                 ):
         super().__init__()
         self.coef_ = coef_
         self.use_MOO = use_MOO
+        self.learn_ = learn_
+        self.lambda_1 = self.coef_
+        self.lambda_2 = self.coef_
+        self.lambda_3 = self.coef_
 
         self.DT_alpha = DT_alpha
         self.TW_alpha = TW_alpha
@@ -123,34 +128,39 @@ class FASTopic(nn.Module):
         else:
             loss_CTR = 0.0
 
-        loss = loss_DSR + loss_ETP + loss_CTR
-
+        # loss = loss_DSR + loss_ETP + loss_CTR
+        loss = loss_DSR + loss_ETP
         # rst_dict = {
         #     'loss': loss,
         #     'loss_CTR': loss_CTR
         # }
 
         if self.use_MOO == 1:
-            if self.weight_loss_CTR != 0:
+            if self.learn_ == 0:
                 rst_dict = {
                     'loss_': loss,
-                    'loss_x1': loss_DSR + loss_ETP + self.coef_ * loss_CTR,
-                    'loss_x2': loss_DSR + self.coef_ * loss_ETP + loss_CTR,
-                    'loss_x3': self.coef_ * loss_DSR + loss_ETP + loss_CTR
+                    'loss_x1': loss_DSR + self.coef_ * loss,
+                    'loss_x2': loss_DT + self.coef_ * loss,
+                    'loss_x3': loss_TW + self.coef_ * loss,
+                    'lossDSR': loss_DSR,
+                    'lossDT': loss_DT,
+                    'lossTW': loss_TW,
                 }
             else:
                 rst_dict = {
                     'loss_': loss,
-                    'loss_x1': loss_DSR + loss_DT + self.coef_ * loss_TW,
-                    'loss_x2': loss_DSR + self.coef_ * loss_DT + loss_TW,
-                    'loss_x3': self.coef_ * loss_DSR + loss_DT + loss_TW,
+                    'loss_x1': loss_DSR + self.lambda_1 * loss,
+                    'loss_x2': loss_DT + self.lambda_2 * loss,
+                    'loss_x3': loss_TW + self.lambda_3 * loss,
+                    'losssDSR': loss_DSR,
+                    'losssDT': loss_DT,
+                    'losssTW': loss_TW,
                 }
         else:
             rst_dict = {
                 'loss_': loss,
                 'lossDSR': loss_DSR,
-                'lossDT': loss_DT,
-                'lossTW': loss_TW,
+                'lossETP': loss_ETP,
             }
 
         return rst_dict
