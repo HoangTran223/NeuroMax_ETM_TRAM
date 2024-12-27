@@ -69,9 +69,9 @@ if __name__ == "__main__":
                         alpha_GR=args.alpha_GR,
                         weight_loss_InfoNCE=args.weight_InfoNCE,
                         beta_temp=args.beta_temp,
-                        coef_=args.coef_,
                         epoch_threshold = args.epoch_threshold,
                         use_MOO=args.use_MOO)
+
     elif args.model == 'FASTopic':
         model = FASTopic(vocab_size=dataset.vocab_size,
                         embed_size=dataset.contextual_embed_size,
@@ -82,7 +82,6 @@ if __name__ == "__main__":
                         theta_temp=args.theta_temp,
                         DT_alpha=args.DT_alpha,
                         TW_alpha=args.TW_alpha,
-                        coef_=args.coef_,
                         use_MOO=args.use_MOO)
     elif args.model == 'ECRTM':
         model = ECRTM(vocab_size=dataset.vocab_size,
@@ -95,7 +94,6 @@ if __name__ == "__main__":
                         weight_loss_ECR=args.weight_ECR,
                         alpha_ECR=args.alpha_ECR,
                         beta_temp=args.beta_temp,
-                        coef_=args.coef_,
                         use_MOO=args.use_MOO)
     elif args.model == 'ETM':
         model = ETM(vocab_size=dataset.vocab_size,
@@ -105,7 +103,6 @@ if __name__ == "__main__":
                         cluster_mean=cluster_mean,
                         cluster_label=cluster_label,
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        coef_=args.coef_,
                         use_MOO=args.use_MOO
                         )
     else:
