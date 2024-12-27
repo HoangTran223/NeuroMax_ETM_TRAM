@@ -125,7 +125,8 @@ class BasicTrainer:
                 moo_algorithm = FairGrad()
 
         adam_optimizer = self.make_adam_optimizer()
-        sam_optimizer = self.make_sam_optimizer() 
+        if self.use_sam == 1:
+            sam_optimizer = self.make_sam_optimizer() 
 
         if self.lr_scheduler:
             print("===>using lr_scheduler")
