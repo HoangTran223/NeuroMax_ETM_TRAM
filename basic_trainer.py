@@ -22,7 +22,7 @@ import time
 from DP.C1 import C1
 
 ##
-from SAM_function.SAM import FSAM
+from SAM_function.FSAM import FSAM
 
 class BasicTrainer:
     def __init__(self, model, epoch_threshold = 150, model_name='NeuroMax', epochs=200, 
