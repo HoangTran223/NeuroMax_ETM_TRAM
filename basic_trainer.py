@@ -151,32 +151,28 @@ class BasicTrainer:
                 if self.use_MOO == 1 and self.sam == 1:
                     
                     ##
-                    rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                    sam_optimizer.first_step(zero_grad=True)
                     loss_sam = rst_dict_adv['loss_']
                     rst_dict['loss_sam'] = loss_sam
                     rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
 
-                    if batch_id % 100 == 0:  
+                    if batch_id % 300 == 0:  
                         print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
                     
-                    total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
-                    batch_loss.backward(retain_graph = True)
-                    for p in self.model.parameters():
-                        if p.grad is not None:
-                            p.grad = p.grad.clone()
-                    #
+                    # total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                    # batch_loss.backward(retain_graph = True)
+                    # for p in self.model.parameters():
+                    #     if p.grad is not None:
+                    #         p.grad = p.grad.clone()
+                    # #
 
-                    sam_optimizer.first_step(zero_grad=True)
+                    # sam_optimizer.first_step(zero_grad=True)
 
 
-
-                    loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
+                    loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
                     grad_array = [DP._get_total_grad(loss_) for loss_ in loss_array]
 
-                    if self.MOO_name == 'MoCo':
-                        adjusted_grad, alpha = moo_algorithm.apply(grad_array, loss_array)
-                    else:
-                        adjusted_grad, alpha = moo_algorithm.apply(grad_array)
+                    adjusted_grad, alpha = moo_algorithm.apply(grad_array)
                     
                     grad_pointer = 0
                     for p in self.model.parameters():
@@ -185,14 +181,16 @@ class BasicTrainer:
                             grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
                             p.grad = grad_slice.view_as(p).clone()
                             grad_pointer += num_params
+                    
+                    sam_optimizer.second_step(zero_grad=True)
 
                 else:
                     batch_loss.backward()
+                    adam_optimizer.step()
+                    adam_optimizer.zero_grad()
 
-                # adam_optimizer.step()
-                # adam_optimizer.zero_grad()
-                total_loss.backward()
-                sam_optimizer.second_step(zero_grad=True)
+                # total_loss.backward()
+                # sam_optimizer.second_step(zero_grad=True)
 
 
                 for key in rst_dict:

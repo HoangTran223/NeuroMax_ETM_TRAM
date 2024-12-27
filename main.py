@@ -132,8 +132,7 @@ if __name__ == "__main__":
                                             threshold=args.threshold,
                                             device=args.device,
                                             sigma=args.sigma,
-                                            lmbda=args.lmbda,
-                                            learn=args.learn,
+                                            lmbda=args.lmbda
                                             )
 
 
