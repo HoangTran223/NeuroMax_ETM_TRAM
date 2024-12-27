@@ -146,7 +146,7 @@ class BasicTrainer:
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss_']
 
-                if self.use_MOO == 1 and self.sam == 1:
+                if self.use_MOO == 1 and self.use_sam == 1:
                     
                     ##
                     sam_optimizer.first_step(zero_grad=True)
