@@ -156,8 +156,8 @@ class BasicTrainer:
                     rst_dict['loss_sam'] = loss_sam
                     rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
 
-                    if batch_id % 300 == 0:  
-                        print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
+                    # if batch_id % 300 == 0:  
+                    #     print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
                     
                     # total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
                     # batch_loss.backward(retain_graph = True)
