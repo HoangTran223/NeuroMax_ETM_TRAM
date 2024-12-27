@@ -21,6 +21,7 @@ def add_model_argument(parser):
     parser.add_argument('--task_num', type=int, help='number of tasks')
     parser.add_argument('--use_MOO', type=int, help='use MOO')
     parser.add_argument('--MOO_name', type=str, help='MOO Variant')
+    parser.add_argument('--use_sam', type=int, default=1, help='use sam')
 
     parser.add_argument('--num_topics', type=int, default=50)
     parser.add_argument('--num_groups', type=int, default=20)
