@@ -21,16 +21,20 @@ import numpy as np
 import time
 from DP.C1 import C1
 
+##
+from SAM_function.SAM import FSAM
+
 class BasicTrainer:
     def __init__(self, model, epoch_threshold = 150, model_name='NeuroMax', epochs=200, 
                  use_decompose=1, use_MOO=1, MOO_name='PCGrad', task_num=3,
-                 learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5, learn=0,
-                    rho = 0.005, threshold=10, device='cuda', sigma=0.1, lmbda=0.9, acc_step=8):
+                 learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5,
+                    rho = 0.005, threshold=10, device='cuda', sigma=0.1, lmbda=0.9,
+                    use_sam=1):
         self.model = model
         self.epoch_threshold = epoch_threshold
         self.model_name = model_name
         self.task_num = task_num
-        self.learn = learn
+        #self.learn = learn
 
         self.use_decompose = use_decompose
         self.use_MOO = use_MOO
@@ -43,6 +47,7 @@ class BasicTrainer:
         self.log_interval = log_interval
         self.threshold = threshold
 
+        self.use_sam = use_sam
         self.rho = rho 
         self.device = device
         self.sigma = sigma
@@ -60,6 +65,20 @@ class BasicTrainer:
 
         optimizer = torch.optim.Adam(**args_dict)
         return optimizer
+
+    def make_sam_optimizer(self,):
+        base_optimizer = torch.optim.SGD
+        if self.use_sam == 1:
+            optimizer = FSAM(
+                self.model.parameters(),
+                base_optimizer, device=self.device,
+                lr=self.learning_rate,
+                sigma=self.sigma, lmbda=self.lmbda
+                )
+        else:
+            print("WRONG!!")
+        return optimizer
+
 
     def make_lr_scheduler(self, optimizer):
         if self.lr_scheduler == "StepLR":
@@ -81,7 +100,7 @@ class BasicTrainer:
         return top_words, train_theta
 
     def train(self, dataset_handler, verbose=False):
-        accumulation_steps = self.acc_step
+
         DP = C1(model=self.model, device='cuda', buffer_size=self.task_num)
         if self.model_name == 'FASTopic':
             self.task_num = 3
@@ -105,9 +124,9 @@ class BasicTrainer:
                 moo_algorithm = ExcessMTL(self.task_num)
             elif self.MOO_name == 'FairGrad':
                 moo_algorithm = FairGrad()
-            elif self.MOO_name == 'MoCo':
-                moo_algorithm = MoCo()
+
         adam_optimizer = self.make_adam_optimizer()
+        sam_optimizer = self.make_sam_optimizer() 
 
         if self.lr_scheduler:
             print("===>using lr_scheduler")
@@ -117,40 +136,40 @@ class BasicTrainer:
         data_size = len(dataset_handler.train_dataloader.dataset)
 
         num_task = 0
-        start_time = time.time()
-        Loss_warehouse_t_2 = []
-        Loss_warehouse_t_1 = []
-        Loss_warehouse = []
-        T_ = 2
-        itee = 0
+
         for epoch_id, epoch in enumerate(tqdm(range(1, self.epochs + 1))):
             self.model.train()
             loss_rst_dict = defaultdict(float)
+
             for batch_id, batch in enumerate(dataset_handler.train_dataloader): 
                 itee += 1
                 *inputs, indices = batch
                 batch_data = inputs
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss_']
-                if (self.learn == 1) and (self.use_MOO == 1):
-                    loss_array2 = [value.item() for key, value in rst_dict.items() if 'losss' in key]
-                    Loss_warehouse_t_2 = Loss_warehouse_t_1
-                    Loss_warehouse_t_1 = Loss_warehouse
 
-                    if len(Loss_warehouse) == 0:
-                        Loss_warehouse = loss_array2
-                    else:
-                        Loss_warehouse = loss_array2
-                    if itee >= 3:
-                        w_t_1 = np.divide(Loss_warehouse_t_2, np.multiply(T_, Loss_warehouse_t_1) + 1e-8)
-                        e_w_t_1 = np.exp(w_t_1 - np.max(w_t_1)) 
-                        lambda_t = len(loss_array2) * e_w_t_1 / np.sum(e_w_t_1)  
-                
-                        if self.model_name in ["ECRTM", "NeuroMax", "FASTopic"]:
-                            self.model.lambda_1, self.model.lambda_2, self.model.lambda_3 = lambda_t[:3]
-                            if self.model_name == "NeuroMax":
-                                self.model.lambda_4 = lambda_t[3]
-                if self.use_MOO != 0:
+                if self.use_MOO == 1 and self.sam == 1:
+                    
+                    ##
+                    rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
+                    loss_sam = rst_dict_adv['loss_']
+                    rst_dict['loss_sam'] = loss_sam
+                    rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
+
+                    if batch_id % 100 == 0:  
+                        print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
+                    
+                    total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
+                    batch_loss.backward(retain_graph = True)
+                    for p in self.model.parameters():
+                        if p.grad is not None:
+                            p.grad = p.grad.clone()
+                    #
+
+                    sam_optimizer.first_step(zero_grad=True)
+
+
+
                     loss_array = [value for key, value in rst_dict.items() if 'loss_x' in key]
                     grad_array = [DP._get_total_grad(loss_) for loss_ in loss_array]
 
@@ -166,10 +185,15 @@ class BasicTrainer:
                             grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
                             p.grad = grad_slice.view_as(p).clone()
                             grad_pointer += num_params
+
                 else:
                     batch_loss.backward()
-                adam_optimizer.step()
-                adam_optimizer.zero_grad()
+
+                # adam_optimizer.step()
+                # adam_optimizer.zero_grad()
+                total_loss.backward()
+                sam_optimizer.second_step(zero_grad=True)
+
 
                 for key in rst_dict:
                     try:

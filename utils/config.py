@@ -16,7 +16,7 @@ def add_model_argument(parser):
     parser.add_argument('--epoch_threshold', type=int, help='use epoch_threshold')
     parser.add_argument('--coef_', type=float, default=0.5, help='use epoch_threshold')
     parser.add_argument('--init_2', type=int, default=0, help='use epoch_threshold')
-    parser.add_argument('--learn', type=int, default=0, help='the lambda hyperparameter learning in the training process or not')
+    #parser.add_argument('--learn', type=int, default=0, help='the lambda hyperparameter learning in the training process or not')
 
     parser.add_argument('--task_num', type=int, help='number of tasks')
     parser.add_argument('--use_MOO', type=int, help='use MOO')
@@ -63,8 +63,6 @@ def add_training_argument(parser):
                         help='sigma') 
     parser.add_argument('--lmbda', type=float, default=0.9,
                         help='lmbda') 
-    parser.add_argument('--acc_step', type=float, default=8,
-                        help='acc_step') 
 
 
 def save_config(args, path):

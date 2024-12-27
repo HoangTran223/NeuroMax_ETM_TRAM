@@ -167,39 +167,12 @@ class ECRTM(nn.Module):
 
         loss_ECR = self.get_loss_ECR()
 
-        #loss = loss_TM + loss_ECR + loss_CTR
         loss = loss_TM + loss_ECR
 
-        if self.use_MOO == 1:
-            if self.learn_ == 0:
-                rst_dict = {
-                    'loss_': loss,
-                    'loss_x1': recon_loss + self.coef_ * loss,
-                    'loss_x2': loss_KL + self.coef_ * loss,
-                    'loss_x3': loss_ECR + self.coef_ * loss,
-                    'lossrecon': recon_loss,
-                    'lossKL': loss_KL,
-                    'lossECR': loss_ECR,
-                }
-            else:
-                rst_dict = {
-                    'loss_': loss,
-                    'loss_x1': recon_loss + self.lambda_1 * loss,
-                    'loss_x2': loss_KL + self.lambda_2 * loss,
-                    'loss_x3': loss_ECR + self.lambda_3 * loss,
-                    'losssrecon': recon_loss,
-                    'losssKL': loss_KL,
-                    'losssECR': loss_ECR,
-                }
-        else:
-            rst_dict = {
-                    'loss_': loss,
-                    'lossrecon': recon_loss,
-                    'lossKL': loss_KL,
-                    'lossECR': loss_ECR,
-                    #'lossCTR': loss_CTR
-                }
-
-
+        rst_dict = {   
+            'loss_': loss,
+            'loss_TM': loss_TM,
+            'loss_ECR': loss_ECR
+        }
         return rst_dict
 
