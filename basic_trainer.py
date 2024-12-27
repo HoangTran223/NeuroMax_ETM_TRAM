@@ -52,7 +52,6 @@ class BasicTrainer:
         self.device = device
         self.sigma = sigma
         self.lmbda = lmbda
-        self.acc_step = acc_step
         self.logger = logging.getLogger('main')
 
         self.loss_out = []
