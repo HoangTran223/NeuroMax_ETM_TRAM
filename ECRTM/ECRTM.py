@@ -13,11 +13,12 @@ class ECRTM(nn.Module):
     '''
     def __init__(self, vocab_size, num_topics=50, en_units=200, dropout=0., pretrained_WE=None, embed_size=200,
                     cluster_distribution=None, cluster_mean=None, cluster_label=None, sinkhorn_alpha = 20.0,
-                    beta_temp=0.2, weight_loss_ECR=250.0, alpha_ECR=20.0, sinkhorn_max_iter=1000):
+                    beta_temp=0.2, weight_loss_ECR=250.0, alpha_ECR=20.0, sinkhorn_max_iter=1000, use_MOO = 1):
         super().__init__()
 
         self.num_topics = num_topics
         self.beta_temp = beta_temp
+        self.use_MOO = use_MOO
 
         self.a = 1 * np.ones((1, num_topics)).astype(np.float32)
         self.mu2 = nn.Parameter(torch.as_tensor((np.log(self.a).T - np.mean(np.log(self.a), 1)).T))
