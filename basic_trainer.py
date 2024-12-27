@@ -149,7 +149,10 @@ class BasicTrainer:
                 if self.use_MOO == 1 and self.use_sam == 1:
                     
                     ##
+                    batch_loss.backward(retain_graph=True)
                     sam_optimizer.first_step(zero_grad=True)
+
+                    rst_dict_adv = self.model(indices, batch_data, epoch_id=epoch)
                     loss_sam = rst_dict_adv['loss_']
                     rst_dict['loss_sam'] = loss_sam
                     rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
