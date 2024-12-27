@@ -134,8 +134,6 @@ class BasicTrainer:
 
         data_size = len(dataset_handler.train_dataloader.dataset)
 
-        num_task = 0
-
         for epoch_id, epoch in enumerate(tqdm(range(1, self.epochs + 1))):
             self.model.train()
             loss_rst_dict = defaultdict(float)
@@ -146,7 +144,7 @@ class BasicTrainer:
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch)
                 batch_loss = rst_dict['loss_']
 
-                if self.use_MOO == 1 and self.use_sam == 1:
+                if (self.use_MOO == 1) and (self.use_sam == 1):
                     
                     ##
                     batch_loss.backward(retain_graph=True)

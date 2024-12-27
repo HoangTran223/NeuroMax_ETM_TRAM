@@ -94,7 +94,8 @@ if __name__ == "__main__":
                         weight_loss_ECR=args.weight_ECR,
                         alpha_ECR=args.alpha_ECR,
                         beta_temp=args.beta_temp,
-                        use_MOO=args.use_MOO)
+                        use_MOO=args.use_MOO
+                        )
     elif args.model == 'ETM':
         model = ETM(vocab_size=dataset.vocab_size,
                         num_topics=args.num_topics,
@@ -129,7 +130,8 @@ if __name__ == "__main__":
                                             threshold=args.threshold,
                                             device=args.device,
                                             sigma=args.sigma,
-                                            lmbda=args.lmbda
+                                            lmbda=args.lmbda,
+                                            use_sam=args.use_sam
                                             )
 
 
