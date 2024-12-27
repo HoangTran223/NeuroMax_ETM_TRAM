@@ -3,7 +3,6 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from .ECR import ECR
-from NeuroMax.CTR import CTR
 
 
 class ECRTM(nn.Module):
@@ -12,21 +11,13 @@ class ECRTM(nn.Module):
 
         Xiaobao Wu, Xinshuai Dong, Thong Thanh Nguyen, Anh Tuan Luu.
     '''
-    def __init__(self, vocab_size, num_topics=50, en_units=200, dropout=0., pretrained_WE=None, embed_size=200, is_CTR=False,
-                    cluster_distribution=None, cluster_mean=None, cluster_label=None, sinkhorn_alpha = 20.0, weight_CTR=100.0, learn_=0,
-                    beta_temp=0.2, weight_loss_ECR=250.0, alpha_ECR=20.0, sinkhorn_max_iter=1000, coef_=0.5, init_2=0, use_MOO=1):
+    def __init__(self, vocab_size, num_topics=50, en_units=200, dropout=0., pretrained_WE=None, embed_size=200,
+                    cluster_distribution=None, cluster_mean=None, cluster_label=None, sinkhorn_alpha = 20.0,
+                    beta_temp=0.2, weight_loss_ECR=250.0, alpha_ECR=20.0, sinkhorn_max_iter=1000):
         super().__init__()
-        self.coef_ = coef_
-        self.use_MOO = use_MOO
-        self.learn_ = learn_
-        self.lambda_1 = self.coef_
-        self.lambda_2 = self.coef_
-        self.lambda_3 = self.coef_
 
         self.num_topics = num_topics
         self.beta_temp = beta_temp
-        self.weight_CTR = weight_CTR
-        self.is_CTR = is_CTR
 
         self.a = 1 * np.ones((1, num_topics)).astype(np.float32)
         self.mu2 = nn.Parameter(torch.as_tensor((np.log(self.a).T - np.mean(np.log(self.a), 1)).T))
@@ -55,30 +46,10 @@ class ECRTM(nn.Module):
             self.word_embeddings = nn.init.trunc_normal_(torch.empty(vocab_size, embed_size))
         self.word_embeddings = nn.Parameter(F.normalize(self.word_embeddings))
 
+        
         self.topic_embeddings = torch.empty((num_topics, self.word_embeddings.shape[1]))
         nn.init.trunc_normal_(self.topic_embeddings, std=0.1)
         self.topic_embeddings = nn.Parameter(F.normalize(self.topic_embeddings))
-
-        self.encoder1 = nn.Sequential(
-            nn.Linear(vocab_size, en_units),
-            nn.Softplus(),
-            nn.Linear(en_units, en_units),
-            nn.Softplus(),
-            nn.Dropout(dropout)
-        )
-
-        # Add CTR
-        self.cluster_mean = nn.Parameter(torch.from_numpy(cluster_mean).float(), requires_grad=False)
-        self.cluster_distribution = nn.Parameter(torch.from_numpy(cluster_distribution).float(), requires_grad=False)
-        self.cluster_label = cluster_label
-        if not isinstance(self.cluster_label, torch.Tensor):
-            self.cluster_label = torch.tensor(self.cluster_label, dtype=torch.long, device='cuda')
-        else:
-            self.cluster_label = self.cluster_label.to(device='cuda', dtype=torch.long)
-        
-        self.map_t2c = nn.Linear(self.word_embeddings.shape[1], self.cluster_mean.shape[1], bias=False)
-        self.CTR = CTR(weight_CTR, sinkhorn_alpha, sinkhorn_max_iter)
-        # #
 
         self.ECR = ECR(weight_loss_ECR, alpha_ECR, sinkhorn_max_iter)
 
@@ -99,10 +70,9 @@ class ECRTM(nn.Module):
 
     # Same
     def encode(self, input):
-        # e1 = F.softplus(self.fc11(input))
-        # e1 = F.softplus(self.fc12(e1))
-        # e1 = self.fc1_dropout(e1)
-        e1 = self.encoder1(input)
+        e1 = F.softplus(self.fc11(input))
+        e1 = F.softplus(self.fc12(e1))
+        e1 = self.fc1_dropout(e1)
         mu = self.mean_bn(self.fc21(e1))
         logvar = self.logvar_bn(self.fc22(e1))
         z = self.reparameterize(mu, logvar)
@@ -145,14 +115,6 @@ class ECRTM(nn.Module):
         return cost
 
 
-    # Thêm
-    def get_loss_CTR(self, input, indices):
-        bow = input[0]
-        theta, _ = self.encode(bow)
-        cd_batch = self.cluster_distribution[indices]  
-        cost = self.pairwise_euclidean_distance(self.cluster_mean, self.map_t2c(self.topic_embeddings))  
-        loss_CTR = self.weight_CTR * self.CTR(theta, cd_batch, cost)  
-        return loss_CTR
 
     def forward(self, indices, input, epoch_id=None):
         # input = input['data']
@@ -167,12 +129,14 @@ class ECRTM(nn.Module):
 
         loss_ECR = self.get_loss_ECR()
 
+
         loss = loss_TM + loss_ECR
 
-        rst_dict = {   
-            'loss_': loss,
+        rst_dict = {
+            'loss': loss,
             'loss_TM': loss_TM,
             'loss_ECR': loss_ECR
         }
+
         return rst_dict
 
