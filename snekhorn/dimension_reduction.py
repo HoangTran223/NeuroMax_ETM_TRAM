@@ -189,10 +189,10 @@ class AffinityMatcher():
                     if self.verbose:
                         print('---------- delta loss convergence ----------')
                     break
-                if self.verbose:
-                    pbar.set_description(f'Loss : {float(loss.item()): .3e}, '
-                                         f'delta : {float(delta): .3e} '
-                                         )
+                # if self.verbose:
+                #     pbar.set_description(f'Loss : {float(loss.item()): .3e}, '
+                #                          f'delta : {float(delta): .3e} '
+                #                          )
         self.embedding_ = embedding.clone().detach()
         self.n_iter_ = k
         if self.tolog:
