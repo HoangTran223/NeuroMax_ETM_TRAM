@@ -271,7 +271,7 @@ class SNEkhorn(AffinityMatcher):
                  init='pca',
                  tol=1e-4,
                  max_iter=100,
-                 lr_sea=1e-1,
+                 lr_sea=1e-2,
                  max_iter_sea=500,
                  tol_sea=1e-3,
                  square_parametrization=False,
