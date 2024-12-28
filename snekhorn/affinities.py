@@ -449,9 +449,9 @@ class BistochasticAffinity(BaseAffinity):
         ##
         device = C.device
 
-        if self.verbose:
-            print(
-                '---------- Computing the doubly stochastic affinity matrix ----------')
+        # if self.verbose:
+        #     print(
+        #         '---------- Computing the doubly stochastic affinity matrix ----------')
         n = C.shape[0]
 
         # Allows a warm-start if a dual variable f is provided

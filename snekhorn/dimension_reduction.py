@@ -186,8 +186,8 @@ class AffinityMatcher():
             if k > 1:
                 delta = abs(losses[-1] - losses[-2]) / abs(losses[-2])
                 if delta < self.tol:
-                    if self.verbose:
-                        print('---------- delta loss convergence ----------')
+                    # if self.verbose:
+                    #     print('---------- delta loss convergence ----------')
                     break
                 # if self.verbose:
                 #     pbar.set_description(f'Loss : {float(loss.item()): .3e}, '
