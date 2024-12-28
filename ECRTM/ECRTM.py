@@ -149,6 +149,7 @@ class ECRTM(nn.Module):
         beta = self.get_beta()
 
         recon = F.softmax(self.decoder_bn(torch.matmul(theta_reduced, beta)), dim=-1)
+        recon = recon.T
         recon_loss = -(bow * recon.log()).sum(axis=1).mean()
 
         loss_TM = recon_loss + loss_KL
