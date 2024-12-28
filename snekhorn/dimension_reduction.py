@@ -177,6 +177,9 @@ class AffinityMatcher():
                 raise NanError(
                     f'NaN in loss at iteration {k}, consider decreasing the learning rate.')
 
+            ##
+            loss.requires_grad_(True)
+            
             loss.backward()
             optimizer.step()
 
