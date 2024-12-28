@@ -276,15 +276,17 @@ class SymmetricEntropicAffinity(BaseAffinity):
         ----------
         [1] SNEkhorn: Dimension Reduction with Symmetric Entropic Affinities, Hugues Van Assel, Titouan Vayer, Rémi Flamary, Nicolas Courty, NeurIPS 2023.
         """
+        ##
+        device = C.device   
         n = C.shape[0]
         if not 1 <= self.perp <= n:
             BadPerplexity(
                 'The perplexity parameter must be between 1 and number of samples')
         target_entropy = math.log(self.perp) + 1
         # dual variable corresponding to the entropy constraint
-        eps = torch.ones(n, dtype=torch.double)
+        eps = torch.ones(n, dtype=torch.double, device=device)
         # dual variable corresponding to the marginal constraint
-        mu = torch.zeros(n, dtype=torch.double)
+        mu = torch.zeros(n, dtype=torch.double, device=device)
         log_P = log_Pse(C, eps, mu, to_square=self.square_parametrization)
 
         optimizer = OPTIMIZERS[self.optimizer]([eps, mu], lr=self.lr)
@@ -298,7 +300,7 @@ class SymmetricEntropicAffinity(BaseAffinity):
             print(
                 '---------- Computing the symmetric entropic affinity matrix ----------')
 
-        one = torch.ones(n, dtype=torch.double)
+        one = torch.ones(n, dtype=torch.double, device=device)
         pbar = tqdm(range(self.max_iter))
         for k in pbar:
             with torch.no_grad():
@@ -444,6 +446,8 @@ class BistochasticAffinity(BaseAffinity):
         log_P: torch.Tensor of shape (n_samples, n_samples)
             Affinity matrix in log space. 
         """
+        ##
+        device = C.device
 
         if self.verbose:
             print(
@@ -451,7 +455,7 @@ class BistochasticAffinity(BaseAffinity):
         n = C.shape[0]
 
         # Allows a warm-start if a dual variable f is provided
-        f = torch.zeros(n) if self.f is None else self.f
+        f = torch.zeros(n, device = device) if self.f is None else self.f.to(device)
 
         if self.tolog:
             self.log_['f'] = [f.clone()]
@@ -496,6 +500,9 @@ def log_Pe(C, eps):
     log_P: torch.Tensor of shape (n_samples, n_samples)
         log of the directed affinity matrix of SNE.
     """
+    ##
+    device = C.device
+    eps = eps.to(device)
 
     log_P = - C / (eps[:, None])
     return log_P - torch.logsumexp(log_P, -1, keepdim=True)
@@ -545,7 +552,9 @@ def Lagrangian(C, log_P, eps, mu, perp):
     cost: float
         Value of the Lagrangian.
     """
-    one = torch.ones(C.shape[0], dtype=torch.double)
+    ##
+    device = C.device
+    one = torch.ones(C.shape[0], dtype=torch.double, device=device)
 
     target_entropy = math.log(perp) + 1
     HP = entropy(log_P, log=True, ax=1)
