@@ -296,9 +296,9 @@ class SymmetricEntropicAffinity(BaseAffinity):
             self.log_['mu'] = [mu.clone().detach()]
             self.log_['loss'] = []
 
-        if self.verbose:
-            print(
-                '---------- Computing the symmetric entropic affinity matrix ----------')
+        # if self.verbose:
+        #     print(
+        #         '---------- Computing the symmetric entropic affinity matrix ----------')
 
         one = torch.ones(n, dtype=torch.double, device=device)
         pbar = tqdm(range(self.max_iter))
@@ -349,13 +349,13 @@ class SymmetricEntropicAffinity(BaseAffinity):
                 if (torch.abs(H - math.log(self.perp)-1) < self.tol).all() and (torch.abs(P_sum - one) < self.tol).all():
                     self.log_['n_iter'] = k
                     self.n_iter_ = k
-                    if self.verbose:
-                        print(f'breaking at iter {k}')
-                    break
+                    # if self.verbose:
+                    #     print(f'breaking at iter {k}')
+                    # break
 
-                if k == self.max_iter-1 and self.verbose:
-                    print(
-                        '---------- Warning: max iter attained, algorithm stops but may not have converged ----------')
+                # if k == self.max_iter-1 and self.verbose:
+                #     print(
+                #         '---------- Warning: max iter attained, algorithm stops but may not have converged ----------')
 
         self.eps_ = eps.clone().detach()
         self.mu_ = mu.clone().detach()
