@@ -35,12 +35,15 @@ class ECRTM(nn.Module):
         self.fc1_dropout = nn.Dropout(dropout)
         self.theta_dropout = nn.Dropout(dropout)
 
-        self.mean_bn = nn.BatchNorm1d(num_topics)
-        self.mean_bn.weight.requires_grad = False
-        self.logvar_bn = nn.BatchNorm1d(num_topics)
-        self.logvar_bn.weight.requires_grad = False
+        # self.mean_bn = nn.BatchNorm1d(num_topics)
+        # self.mean_bn.weight.requires_grad = False
+        # self.logvar_bn = nn.BatchNorm1d(num_topics)
+        # self.logvar_bn.weight.requires_grad = False
+        # self.decoder_bn = nn.BatchNorm1d(vocab_size, affine=True)
+        # self.decoder_bn.weight.requires_grad = False
+        self.mean_bn = nn.BatchNorm1d(num_topics, affine = True)
+        self.logvar_bn = nn.BatchNorm1d(num_topics, affine = True)
         self.decoder_bn = nn.BatchNorm1d(vocab_size, affine=True)
-        self.decoder_bn.weight.requires_grad = False
 
         if pretrained_WE is not None:
             self.word_embeddings = torch.from_numpy(pretrained_WE).float()
@@ -91,7 +94,7 @@ class ECRTM(nn.Module):
         ##
         mu.requires_grad_(True)  # Ensure requires_grad=True
         logvar.requires_grad_(True)
-        
+
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
 
