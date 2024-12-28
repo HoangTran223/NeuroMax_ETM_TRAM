@@ -502,6 +502,9 @@ def log_Pe(C, eps):
 
 
 def log_Pse(C, eps, mu, to_square=False):
+    device = C.device  # Lấy thiết bị của C
+    eps = eps.to(device)  # Đảm bảo eps nằm trên cùng một thiết bị
+    mu = mu.to(device) 
     """Returns the log of the symmetric entropic affinity matrix with specified parameters epsilon and mu.
 
     Parameters

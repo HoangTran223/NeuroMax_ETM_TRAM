@@ -80,6 +80,7 @@ class ECRTM(nn.Module):
 
     # Same
     def encode(self, input):
+        device = input.device
         # e1 = F.softplus(self.fc11(input))
         # e1 = F.softplus(self.fc12(e1))
         # e1 = self.fc1_dropout(e1)
@@ -93,7 +94,7 @@ class ECRTM(nn.Module):
         perplexity = 30  # Adjust this value as needed
         output_dim = 2 
         snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
-        theta_reduced = snekhorn.fit_transform(theta)
+        theta_reduced = snekhorn.fit_transform(theta.to(device))
 
         loss_KL = self.compute_loss_KL(mu, logvar)
 
