@@ -145,12 +145,19 @@ class ECRTM(nn.Module):
     def forward(self, indices, input, epoch_id=None):
         # input = input['data']
         bow = input[0]
-        theta_reduced, loss_KL = self.encode(bow)
+        ##
+        perplexity = 30  # Adjust this value as needed
+        output_dim = 30
+        snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
+        bow_reduced = snekhorn.fit_transform(bow.T.to(input.device)).T
+
+
+        theta_reduced, loss_KL = self.encode(bow_reduced)
         beta = self.get_beta()
 
-        recon = F.softmax(self.decoder_bn(torch.matmul(theta_reduced, beta)), dim=-1)
+        recon = F.softmax(self.decoder_bn(torch.matmul(beta, theta_reduced)), dim=-1)
         recon = recon.T
-        recon_loss = -(bow * recon.log()).sum(axis=1).mean()
+        recon_loss = -(bow_reduced * recon.log()).sum(axis=1).mean()
 
         loss_TM = recon_loss + loss_KL
 
