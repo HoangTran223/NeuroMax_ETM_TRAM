@@ -145,9 +145,6 @@ class AffinityMatcher():
         self.PX_ = PX_
         losses = []
         if isinstance(self.init, torch.Tensor):  # Z embedding
-            if self.init.shape[0] != n or self.init.shape[1] != self.output_dim:
-                raise WrongParameter('Init tensor must be of shape {0} but found {1}'.format(
-                    (n, self.output_dim), self.init.shape))
             ##embedding = self.init
             embedding = self.init.clone().detach().requires_grad_(True)
             

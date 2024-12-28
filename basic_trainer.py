@@ -202,7 +202,7 @@ class BasicTrainer:
         with torch.no_grad():
             self.model.eval()
             for idx in all_idx:
-                batch_input = input_data[idx]
+                batch_input = input_data[idx].clone().detach().requires_grad_(True)
             
                 if self.model_name == 'FASTopic':
                     batch_theta = self.model.get_theta(batch_input, train_data)
