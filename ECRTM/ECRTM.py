@@ -92,8 +92,8 @@ class ECRTM(nn.Module):
         logvar = self.logvar_bn(self.fc22(e1))
 
         ##
-        # mu.requires_grad_(True)  # Ensure requires_grad=True
-        # logvar.requires_grad_(True)
+        mu.requires_grad_(True)  # Ensure requires_grad=True
+        logvar.requires_grad_(True)
 
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
