@@ -4,6 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from .ECR import ECR
 
+from snekhorn.dimension_reduction import SNEkhorn
 
 class ECRTM(nn.Module):
     '''
@@ -88,9 +89,16 @@ class ECRTM(nn.Module):
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=1)
 
+        ##
+        perplexity = 30  # Adjust this value as needed
+        output_dim = 2 
+        snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
+        theta_reduced = snekhorn.fit_transform(theta)
+
         loss_KL = self.compute_loss_KL(mu, logvar)
 
-        return theta, loss_KL
+        # return theta, loss_KL
+        return theta_reduced, loss_KL
 
 
     # Same
@@ -145,7 +153,8 @@ class ECRTM(nn.Module):
         rst_dict = {
             'loss_': loss,
             'loss_TM': loss_TM,
-            'loss_ECR': loss_ECR
+            'loss_ECR': loss_ECR,
+            'theta_reduced': theta
         }
 
         return rst_dict

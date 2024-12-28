@@ -185,6 +185,10 @@ class BasicTrainer:
                     output_log += f' {key}: {loss_rst_dict[key] / data_size :.3f}'
 
                 self.logger.info(output_log)
+            
+            theta_reduced = rst_dict.get('theta_reduced')
+            if theta_reduced is not None:
+                print(f"The dimensions of theta_reduced: {theta_reduced.shape}")
 
 
 
