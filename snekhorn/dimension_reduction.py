@@ -167,8 +167,7 @@ class AffinityMatcher():
         pbar = range(self.max_iter)
         for k in pbar:
             optimizer.zero_grad()
-            log_Q = self.affinity_embedding.compute_log_affinity(
-                embedding)
+            log_Q = self.affinity_embedding.compute_log_affinity(embedding)
             if not log_Q.requires_grad:
                 log_Q = log_Q.clone().detach().requires_grad_(True)
 
