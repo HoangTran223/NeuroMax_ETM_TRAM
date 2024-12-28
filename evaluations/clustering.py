@@ -4,6 +4,9 @@ from sklearn import metrics
 
 
 def purity_score(y_true, y_pred):
+    print(f"Shape of y_true: {y_true.shape}")
+    print(f"Shape of y_pred: {y_pred.shape}")
+
     # compute contingency matrix (also called confusion matrix)
     contingency_matrix = metrics.cluster.contingency_matrix(y_true, y_pred)
     # return purity
@@ -31,4 +34,8 @@ def clustering_metric(labels, preds):
 
 def evaluate_clustering(theta, labels):
     preds = np.argmax(theta, axis=1)
+    print(f"Shape of theta: {theta.shape}")
+    print(f"Shape of labels: {labels.shape}")
+    return clustering_metric(labels, preds)
+    
     return clustering_metric(labels, preds)

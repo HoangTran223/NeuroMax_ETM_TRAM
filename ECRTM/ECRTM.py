@@ -149,6 +149,7 @@ class ECRTM(nn.Module):
         snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
         bow_reduced = snekhorn.fit_transform(bow.T).T
 
+        print(f"The dimensions of bow_reduced: {bow_reduced.shape}")
 
         theta_reduced, loss_KL = self.encode(bow_reduced)
         beta = self.get_beta()
