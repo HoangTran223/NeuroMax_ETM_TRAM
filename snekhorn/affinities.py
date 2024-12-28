@@ -339,12 +339,12 @@ class SymmetricEntropicAffinity(BaseAffinity):
                                                              eps0, mu0, self.perp).item())
 
                 perps = torch.exp(H-1)
-                if self.verbose:
-                    pbar.set_description(
-                        f'perps mean : {float(perps.mean().item()): .3e}, '
-                        f'perps std : {float(perps.std().item()): .3e}, '
-                        f'marginal sum : {float(P_sum.mean().item()): .3e}, '
-                        f'marginal std : {float(P_sum.std().item()): .3e}, ')
+                # if self.verbose:
+                #     pbar.set_description(
+                #         f'perps mean : {float(perps.mean().item()): .3e}, '
+                #         f'perps std : {float(perps.std().item()): .3e}, '
+                #         f'marginal sum : {float(P_sum.mean().item()): .3e}, '
+                #         f'marginal std : {float(P_sum.std().item()): .3e}, ')
 
                 if (torch.abs(H - math.log(self.perp)-1) < self.tol).all() and (torch.abs(P_sum - one) < self.tol).all():
                     self.log_['n_iter'] = k
