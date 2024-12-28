@@ -148,7 +148,9 @@ class AffinityMatcher():
             if self.init.shape[0] != n or self.init.shape[1] != self.output_dim:
                 raise WrongParameter('Init tensor must be of shape {0} but found {1}'.format(
                     (n, self.output_dim), self.init.shape))
-            embedding = self.init
+            ##embedding = self.init
+            embedding = self.init.clone().detach().requires_grad_(True)
+            
         elif self.init == "random":
             embedding = torch.normal(0, 1, size=(
                 n, self.output_dim), dtype=torch.double)
@@ -156,7 +158,7 @@ class AffinityMatcher():
             pca = PCA(n_components=self.output_dim)
             embedding = pca.fit_transform(X)
 
-        embedding.requires_grad = True
+        #embedding.requires_grad = True
         optimizer = OPTIMIZERS[self.optimizer]([embedding], lr=self.lr)
 
         pbar = tqdm(range(self.max_iter))
