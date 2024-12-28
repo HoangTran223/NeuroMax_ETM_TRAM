@@ -67,15 +67,12 @@ class BasicTrainer:
 
     def make_sam_optimizer(self,):
         base_optimizer = torch.optim.SGD
-        if self.use_sam == 1:
-            optimizer = FSAM(
-                self.model.parameters(),
-                base_optimizer, device=self.device,
-                lr=self.learning_rate,
-                sigma=self.sigma, lmbda=self.lmbda
-                )
-        else:
-            print("WRONG!!")
+        optimizer = FSAM(
+            self.model.parameters(),
+            base_optimizer, device=self.device,
+            lr=self.learning_rate,
+            sigma=self.sigma, lmbda=self.lmbda
+            )
         return optimizer
 
 
@@ -125,8 +122,7 @@ class BasicTrainer:
                 moo_algorithm = FairGrad()
 
         adam_optimizer = self.make_adam_optimizer()
-        if self.use_sam == 1:
-            sam_optimizer = self.make_sam_optimizer() 
+        sam_optimizer = self.make_sam_optimizer() 
 
         if self.lr_scheduler:
             print("===>using lr_scheduler")
