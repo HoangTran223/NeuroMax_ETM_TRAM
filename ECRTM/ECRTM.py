@@ -147,7 +147,7 @@ class ECRTM(nn.Module):
         perplexity = 30  # Adjust this value as needed
         output_dim = 40
         snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
-        bow_reduced = snekhorn.fit_transform(bow.T).T
+        bow_reduced = snekhorn.fit_transform(bow.T)
 
 
         theta_reduced, loss_KL = self.encode(bow_reduced)
