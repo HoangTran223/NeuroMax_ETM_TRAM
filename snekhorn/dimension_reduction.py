@@ -155,11 +155,13 @@ class AffinityMatcher():
             # embedding = torch.normal(0, 1, size=(
             #     n, self.output_dim), dtype=torch.double)
             embedding = torch.randn(n, self.output_dim, device=X.device, requires_grad=True)
+            
         elif self.init == "pca":
             # pca = PCA(n_components=self.output_dim)
             # embedding = pca.fit_transform(X)
 
-            embedding = PCA(X, self.output_dim).to(X.device).clone().detach().requires_grad_(True)
+            pca = PCA(n_components=self.output_dim)
+            embedding = pca.fit_transform(X).to(X.device).clone().detach().requires_grad_(True)
 
         #embedding.requires_grad = True
         optimizer = OPTIMIZERS[self.optimizer]([embedding], lr=self.lr)
