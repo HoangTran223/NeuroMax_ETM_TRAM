@@ -140,9 +140,9 @@ class ECRTM(nn.Module):
         cost = torch.sum(x ** 2, axis=1, keepdim=True) + torch.sum(y ** 2, dim=1) - 2 * torch.matmul(x, y.t())
         return cost
 
-
     def forward(self, indices, input, epoch_id=None):
         # input = input['data']
+        device = bow.device
         bow = input[0]
         ##
         perplexity = 30  # Adjust this value as needed
