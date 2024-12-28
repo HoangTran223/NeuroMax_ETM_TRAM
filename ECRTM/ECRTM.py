@@ -96,7 +96,9 @@ class ECRTM(nn.Module):
         logvar.requires_grad_(True)
 
         z = self.reparameterize(mu, logvar)
-        theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
+        #theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
+        theta = F.softmax(z, dim=1)
+        theta.requires_grad_(True)
 
         assert theta.requires_grad, "theta does not require grad"
         assert mu.requires_grad, "mu does not require grad"
