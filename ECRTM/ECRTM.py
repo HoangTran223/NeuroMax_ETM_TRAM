@@ -101,13 +101,12 @@ class ECRTM(nn.Module):
         perplexity = 30  # Adjust this value as needed
         output_dim = 40
         snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
-        theta_reduced = snekhorn.fit_transform((theta.T).to(device))
-        theta_reduced = theta_reduced.T
+        theta_reduced = snekhorn.fit_transform(theta.T.to(device))
 
         loss_KL = self.compute_loss_KL(mu, logvar)
 
         # return theta, loss_KL
-        return theta_reduced, loss_KL
+        return theta_reduced.T, loss_KL
 
 
     # Same
