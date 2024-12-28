@@ -84,9 +84,6 @@ class ECRTM(nn.Module):
     # Same
     def encode(self, input):
         device = input.device
-        # e1 = F.softplus(self.fc11(input))
-        # e1 = F.softplus(self.fc12(e1))
-        # e1 = self.fc1_dropout(e1)
         e1 = self.encoder1(input)
         mu = self.mean_bn(self.fc21(e1))
         logvar = self.logvar_bn(self.fc22(e1))
@@ -99,10 +96,6 @@ class ECRTM(nn.Module):
         #theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
         theta = F.softmax(z, dim=1)
         theta.requires_grad_(True)
-
-        assert theta.requires_grad, "theta does not require grad"
-        assert mu.requires_grad, "mu does not require grad"
-        assert logvar.requires_grad, "logvar does not require grad"
 
         ##
         perplexity = 30  # Adjust this value as needed
@@ -152,10 +145,10 @@ class ECRTM(nn.Module):
     def forward(self, indices, input, epoch_id=None):
         # input = input['data']
         bow = input[0]
-        theta, loss_KL = self.encode(bow)
+        theta_reduced, loss_KL = self.encode(bow)
         beta = self.get_beta()
 
-        recon = F.softmax(self.decoder_bn(torch.matmul(theta, beta)), dim=-1)
+        recon = F.softmax(self.decoder_bn(torch.matmul(theta_reduced, beta)), dim=-1)
         recon_loss = -(bow * recon.log()).sum(axis=1).mean()
 
         loss_TM = recon_loss + loss_KL
@@ -169,7 +162,7 @@ class ECRTM(nn.Module):
             'loss_': loss,
             'loss_TM': loss_TM,
             'loss_ECR': loss_ECR,
-            'theta_reduced': theta
+            'theta_reduced': theta_reduced
         }
 
         return rst_dict
