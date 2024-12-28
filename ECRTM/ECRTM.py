@@ -142,13 +142,12 @@ class ECRTM(nn.Module):
 
     def forward(self, indices, input, epoch_id=None):
         # input = input['data']
-        device = bow.device
         bow = input[0]
         ##
         perplexity = 30  # Adjust this value as needed
         output_dim = 40
         snekhorn = SNEkhorn(perp=perplexity, output_dim=output_dim, verbose=True)
-        bow_reduced = snekhorn.fit_transform(bow.T.to(device)).T
+        bow_reduced = snekhorn.fit_transform(bow.T).T
 
 
         theta_reduced, loss_KL = self.encode(bow_reduced)
