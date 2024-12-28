@@ -87,6 +87,11 @@ class ECRTM(nn.Module):
         e1 = self.encoder1(input)
         mu = self.mean_bn(self.fc21(e1))
         logvar = self.logvar_bn(self.fc22(e1))
+
+        ##
+        mu.requires_grad_(True)  # Ensure requires_grad=True
+        logvar.requires_grad_(True)
+        
         z = self.reparameterize(mu, logvar)
         theta = F.softmax(z, dim=1).clone().detach().requires_grad_(True)
 
