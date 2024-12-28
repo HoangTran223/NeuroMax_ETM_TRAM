@@ -132,7 +132,7 @@ class AffinityMatcher():
         """
         n = X.shape[0]
         if isinstance(self.affinity_data, BaseAffinity):
-            PX_ = self.affinity_data.compute_affinity(X)
+            PX_ = self.affinity_data.compute_affinity(X).clone().detach().requires_grad_(True)
         else:
             if X.shape[1] != n:
                 raise WrongInputFitError(
@@ -140,7 +140,7 @@ class AffinityMatcher():
             if not torch.all(X >= 0):  # a bit quick and dirty
                 raise WrongInputFitError(
                     'When affinity_data="precomputed" the input X in fit must be non-negative')
-            PX_ = X
+            PX_ = X.clone().detach().requires_grad_(True)
 
         self.PX_ = PX_
         losses = []
@@ -169,6 +169,8 @@ class AffinityMatcher():
             optimizer.zero_grad()
             log_Q = self.affinity_embedding.compute_log_affinity(
                 embedding)
+            if not log_Q.requires_grad:
+                log_Q = log_Q.clone().detach().requires_grad_(True)
 
             # pytorch reverse the standard definition of the KL div and impose that the input is in log space to avoid overflow
             loss = torch.nn.functional.kl_div(log_Q, PX_, reduction='sum')
