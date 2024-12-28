@@ -167,6 +167,7 @@ class AffinityMatcher():
         optimizer = OPTIMIZERS[self.optimizer]([embedding], lr=self.lr)
 
         # pbar = tqdm(range(self.max_iter))
+        pbar = range(self.max_iter)
         for k in pbar:
             optimizer.zero_grad()
             log_Q = self.affinity_embedding.compute_log_affinity(

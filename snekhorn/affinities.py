@@ -302,6 +302,7 @@ class SymmetricEntropicAffinity(BaseAffinity):
 
         one = torch.ones(n, dtype=torch.double, device=device)
         #pbar = tqdm(range(self.max_iter))
+        pbar = range(self.max_iter)
         for k in pbar:
             with torch.no_grad():
                 optimizer.zero_grad()
