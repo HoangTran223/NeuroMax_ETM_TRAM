@@ -142,8 +142,6 @@ class BasicTrainer:
                 batch_loss = rst_dict['loss_']
 
                 if (self.use_MOO == 1) and (self.use_sam == 1):
-                    
-                    ##
                     batch_loss.backward(retain_graph=True)
                     sam_optimizer.first_step(zero_grad=True)
 
@@ -152,24 +150,11 @@ class BasicTrainer:
                     rst_dict['loss_sam'] = loss_sam
                     rst_dict['loss_hieu'] = loss_sam - rst_dict['loss_']
 
-                    # if batch_id % 300 == 0:  
-                    #     print(f"Loss: {rst_dict['loss_']}, Loss SAM: {loss_sam}, Difference: {rst_dict['loss_hieu']}")
-                    
-                    # total_loss = rst_dict['loss_'] + rst_dict['loss_sam'] + rst_dict['loss_hieu']
-                    # batch_loss.backward(retain_graph = True)
-                    # for p in self.model.parameters():
-                    #     if p.grad is not None:
-                    #         p.grad = p.grad.clone()
-                    # #
-
-                    # sam_optimizer.first_step(zero_grad=True)
-
-
                     loss_array = [rst_dict['loss_'], rst_dict['loss_sam'], rst_dict['loss_hieu']]
                     grad_array = [DP._get_total_grad(loss_) for loss_ in loss_array]
 
                     adjusted_grad, alpha = moo_algorithm.apply(grad_array)
-                    
+
                     grad_pointer = 0
                     for p in self.model.parameters():
                         if p.requires_grad:
@@ -177,7 +162,7 @@ class BasicTrainer:
                             grad_slice = adjusted_grad[grad_pointer:grad_pointer + num_params]
                             p.grad = grad_slice.view_as(p).clone()
                             grad_pointer += num_params
-                    
+
                     sam_optimizer.second_step(zero_grad=True)
 
                 else:
@@ -185,14 +170,9 @@ class BasicTrainer:
                     adam_optimizer.step()
                     adam_optimizer.zero_grad()
 
-                # total_loss.backward()
-                # sam_optimizer.second_step(zero_grad=True)
-
-
                 for key in rst_dict:
                     try:
-                        loss_rst_dict[key] += rst_dict[key] * \
-                            len(batch_data['data'])
+                        loss_rst_dict[key] += rst_dict[key] * len(batch_data['data'])
                     except:
                         loss_rst_dict[key] += rst_dict[key] * len(batch_data)
 
@@ -204,6 +184,10 @@ class BasicTrainer:
                     output_log += f' {key}: {loss_rst_dict[key] / data_size :.3f}'
 
                 self.logger.info(output_log)
+
+
+
+
 
     def test(self, input_data, train_data=None):
         data_size = input_data.shape[0]
