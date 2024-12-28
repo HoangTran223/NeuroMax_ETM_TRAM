@@ -177,6 +177,7 @@ class BasicTrainer:
                         loss_rst_dict[key] += rst_dict[key] * len(batch_data)
 
             if self.lr_scheduler:
+                adam_optimizer.step()
                 lr_scheduler.step()
             if verbose and epoch % self.log_interval == 0:
                 output_log = f'Epoch: {epoch:03d}'
